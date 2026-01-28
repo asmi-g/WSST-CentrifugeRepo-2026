@@ -1,0 +1,27 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Debug STM32 (OpenOCD)",
+      "type": "cortex-debug",
+      "request": "launch",
+      "servertype": "openocd",
+
+      "cwd": "${workspaceFolder}/app",
+      "executable": "${workspaceFolder}/app/build/stm32-multi-board.elf",
+
+      "device": "STM32F411RE",
+      "interface": "swd",
+
+      "configFiles": [
+        "interface/stlink.cfg",
+        "target/stm32f4x.cfg"
+      ],
+
+      "runToEntryPoint": "main",
+      "svdFile": "${workspaceFolder}/app/Boards/F411RE/STM32F411.svd",
+
+      "preLaunchTask": "Build"
+    }
+  ]
+}
