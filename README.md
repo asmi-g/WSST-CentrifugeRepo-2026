@@ -18,9 +18,11 @@ If you've never done this before, I recommend checking out a section from [this 
 * Add it to your PATH environment variable
 
 After your setup, confirm the following commands are recognized in your bash terminal (preferably in VS Code):
+```
 arm-none-eabi-gcc --version
 cmake --version
 openocd --version
+```
 
 ## Initialize
 Run the environment variable initialization. BEFORE YOU DO, check the paths in the bash script to see if they match where you installed your Arm GNU Toolchain components. IF NOT, change them to match, and add your own script to /app/init for your own environment. DO NOT modify the existing .bashrc. Call it something like .bashrc-asmi, and replace your own name:
