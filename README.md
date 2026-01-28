@@ -2,16 +2,16 @@
 
 ## Install
 Install the following applications:
-[*] [STM32CubeMX](https://www.st.com/en/development-tools/stm32cubemx.html)
-[*] [CMake](https://cmake.org/download/)
-[*] [GNU ARM Embedded Toolchain](https://developer.arm.com/downloads/-/gnu-rm)
-[*] [OpenOCD](https://openocd.org/)
-[*] [Putty](https://www.chiark.greenend.org.uk/~sgtatham/putty/) - not useful immediately but will use at some point
+* [STM32CubeMX](https://www.st.com/en/development-tools/stm32cubemx.html)
+* [CMake](https://cmake.org/download/)
+* [GNU ARM Embedded Toolchain](https://developer.arm.com/downloads/-/gnu-rm)
+* [OpenOCD](https://openocd.org/)
+* [Putty](https://www.chiark.greenend.org.uk/~sgtatham/putty/) - not useful immediately but will use at some point
 
 Setup the following tools and add to your device's PATH environment variables. 
-[*] CMake
-[*] GNU ARM Embedded Toolchain
-[*] OpenOCD
+* CMake
+* GNU ARM Embedded Toolchain
+* OpenOCD
 
 If you've never done this before, I recommend checking out a section from [this tutorial](https://mcuoneclipse.com/2021/05/01/visual-studio-code-for-c-c-with-arm-cortex-m-part-1/), particulary for CMake and GNU Arm Embedded Toolchain. Do not forget to do something similar for OpenOCD as well (it might ask you if you want to add to PATH in the setup GUI). If not, do the following:
 * Find the path where you installed OpenOCD's executable, something like: ..\OpenOCD-20251211-0.12.0\bin\openocd.exe
