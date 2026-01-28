@@ -19,7 +19,7 @@
       ],
 
       "runToEntryPoint": "main",
-      "svdFile": "${workspaceFolder}/app/Boards/F411RE/STM32F411.svd",
+      "svdFile": "${workspaceFolder}/app/boards/F411RE/STM32F411.svd",
 
       "preLaunchTask": "Build"
     }

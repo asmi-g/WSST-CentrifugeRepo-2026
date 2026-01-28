@@ -6,7 +6,7 @@ set(LINKER_SCRIPT ${CMAKE_CURRENT_LIST_DIR}/STM32F411XX_FLASH.ld)
 
 # Include HAL + CMSIS + board-specific HAL config
 set(HAL_INCLUDE_DIRS
-    ${CMAKE_SOURCE_DIR}/Boards/F411RE/Core/Inc
+    ${CMAKE_SOURCE_DIR}/boards/F411RE/Core/Inc
     ${CMAKE_SOURCE_DIR}/hal/Drivers/STM32F4xx_HAL_Driver/Inc
     ${CMAKE_SOURCE_DIR}/hal/Drivers/CMSIS/Include
     ${CMAKE_SOURCE_DIR}/hal/Drivers/CMSIS/Device/ST/STM32F4xx/Include

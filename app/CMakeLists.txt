@@ -8,10 +8,10 @@ set(CMAKE_TOOLCHAIN_FILE ${CMAKE_SOURCE_DIR}/cmake/toolchain-arm-none-eabi.cmake
 set(BOARD "F411RE" CACHE STRING "Target board")
 
 # Include board-specific files
-include(Core/Board/${BOARD}/board.cmake)
+include(core/${BOARD}/board.cmake)
 
 # Application sources
-file(GLOB APP_SOURCES src/*.c Core/App/*.c)
+file(GLOB APP_SOURCES src/*.c core/App/*.c)
 
 add_executable(${PROJECT_NAME}.elf
     ${APP_SOURCES}
