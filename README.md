@@ -28,6 +28,8 @@ develop: Merged feature into develop branch
 ```
 
 **ALWAYS REMEMBER TO MAKE A MERGE REQUEST INTO BOTH, THE DEVELOP AND MAIN BRANCH**
+Merge Request into Main: NEEDS to be reviewed by a different developer
+Merge Request into Develop: If it works functionally, can be rebased and merged into develop on your own
 
 ### Checklist Before Pushing
 Ask yourself:
