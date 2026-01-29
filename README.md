@@ -1,5 +1,25 @@
 # WSST-CentrifugeRepo-2026
 
+## Git Best Practices
+Read through Git Best Practices, [linked Here](https://nvie.com/posts/a-successful-git-branching-model/#the-main-branches).
+
+MAIN IDEA:
+* Master/Main branch:
+    * Main, FUNCTIONAL source code. I.e, code in main is assumed to be in a working state at ALL times
+* Develop branch:
+    * This is the branch where the source code of HEAD always reflects a state with the latest delivered development changes for the next release. When the source code in the develop branch reaches a stable point and is ready to be released, all of the changes should be merged back into master. 
+* Feature branches:
+    * Branch OFF of develop
+    * When functional, merge back INTO develop
+
+Thus, at a high level, the development workflow looks like:
+1. Start feature: main > develop > feature 
+    * Implement changes into a copy of the "develop" branch's source code, which is a copy of the "main" branch's source code
+2. Merge feature: main < develop < feature 
+    * When done, merge changes into the "develop" branch's source code, then into "main"
+
+ALWAYS REMEMBER TO MAKE A MERGE REQUEST INTO BOTH, THE DEVELOP AND MAIN BRANCH
+
 ## Install
 Install the following applications:
 * [STM32CubeMX](https://www.st.com/en/development-tools/stm32cubemx.html)
