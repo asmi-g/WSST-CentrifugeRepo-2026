@@ -1,3 +1,3 @@
 # System Architecture
 
-Placeholder
+ADD IN GENERAL SYSTEM ARCHITECTURE HERE, EXPLAIN IT

@@ -1,1 +1,3 @@
 # Actuation System Architecture
+
+ADD IN ACTUATION SYSTEM ARCHITECTURE HERE, EXPLAIN IT
