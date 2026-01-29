@@ -18,7 +18,19 @@ Thus, at a high level, the development workflow looks like:
 2. Merge feature: main < develop < feature 
     * When done, merge changes into the "develop" branch's source code, then into "main"
 
+Commit Messages: Make sure your commit messages follow the following template:
+"branch_name": "overview of commit functionality"
+ex. develop: Merged feature into develop branch
+
 ALWAYS REMEMBER TO MAKE A MERGE REQUEST INTO BOTH, THE DEVELOP AND MAIN BRANCH
+
+Checklist before pushing. Ask yourself:
+1. Am I pushing my code to a FEATURE branch, and not directly to develop or main?
+2. Does my commit message follow the established convention?
+3. If my feature works, have I rebased it with the develop branch before making a merge request into develop?
+4. If my develop branch works, have I rebased it with main before making a merge request into main?
+5. If I've implemented any code which has changed how a user might use it, have I added the adequate documentation to do so?
+6. Is the repo structure more or less the same (i.e, clean) after my changes?
 
 ## Install
 Install the following applications:
