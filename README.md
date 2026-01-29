@@ -1,5 +1,13 @@
 # WSST-CentrifugeRepo-2026
 
+## Git Version Control
+**REQUIRED**: Before doing any development in this repository, read through and follow the Git best practices described in 
+```/docs/gitBestPractices.md```
+
+## System Overview
+Learn more about the Space Soldering software overview, located in
+```/docs/systemOverview.md```
+
 ## Install
 Install the following applications:
 * [STM32CubeMX](https://www.st.com/en/development-tools/stm32cubemx.html)

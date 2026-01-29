@@ -35,15 +35,15 @@ main
 
 1. **Start a feature**
 ```main → develop → feature```
-- Create a feature branch from `develop`
-- Implement and commit changes
+    - Create a feature branch from `develop`
+    - Implement and commit changes
 
 2. **Finish a feature**
 ```feature → develop → main```
-- Rebase feature onto latest `develop`
-- Merge feature into `develop`
-- Rebase `develop` onto `main`
-- Merge `develop` into `main`
+    - Rebase feature onto latest `develop`
+    - Merge feature into `develop`
+    - Rebase `develop` onto `main`
+    - Merge `develop` into `main`
 
 ---
 
