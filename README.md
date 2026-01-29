@@ -3,7 +3,7 @@
 ## Git Best Practices
 Read through Git Best Practices, [linked Here](https://nvie.com/posts/a-successful-git-branching-model/#the-main-branches).
 
-MAIN IDEA:
+### MAIN IDEA:
 * Master/Main branch:
     * Main, FUNCTIONAL source code. I.e, code in main is assumed to be in a working state at ALL times
 * Develop branch:
@@ -18,13 +18,21 @@ Thus, at a high level, the development workflow looks like:
 2. Merge feature: main < develop < feature 
     * When done, merge changes into the "develop" branch's source code, then into "main"
 
-Commit Messages: Make sure your commit messages follow the following template:
+### Commit Messages
+
+Make sure your commit messages follow the following template:
 "branch_name": "overview of commit functionality"
-ex. develop: Merged feature into develop branch
+ex. 
+```
+develop: Merged feature into develop branch
+```
 
-ALWAYS REMEMBER TO MAKE A MERGE REQUEST INTO BOTH, THE DEVELOP AND MAIN BRANCH
+**ALWAYS REMEMBER TO MAKE A MERGE REQUEST INTO BOTH, THE DEVELOP AND MAIN BRANCH**
+Merge Request into Main: NEEDS to be reviewed by a different developer
+Merge Request into Develop: If it works functionally, can be rebased and merged into develop on your own
 
-Checklist before pushing. Ask yourself:
+### Checklist Before Pushing
+Ask yourself:
 1. Am I pushing my code to a FEATURE branch, and not directly to develop or main?
 2. Does my commit message follow the established convention?
 3. If my feature works, have I rebased it with the develop branch before making a merge request into develop?
