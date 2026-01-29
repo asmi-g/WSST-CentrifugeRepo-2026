@@ -83,6 +83,28 @@ Use the following template:
 
 ---
 
+
+## Linking & Closing Git Issues
+
+All feature work should be associated with a Git issue whenever possible.
+
+### Referencing Issues in Branches (Optional but Recommended)
+
+Include the issue number in the branch name when applicable:
+
+```stage-2-issue-4-high-level-diagram```
+
+When opening a merge request (PR), reference the related issue using one of the following keywords in the **description**:
+
+- `Closes #<issue-number>`
+- `Fixes #<issue-number>`
+- `Resolves #<issue-number>`
+
+**Example**
+```Closes #4```
+When the merge request is merged into `main`, the referenced issue will be **automatically closed**.
+
+---
 ## Pre-Push Checklist
 
 Before pushing or opening a merge request, confirm:
