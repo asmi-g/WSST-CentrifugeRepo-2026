@@ -87,25 +87,39 @@ Use the following template:
 ## Helpful Git Commands
 
 Create New Branch:
-```git checkout -b new-branch-name``
+```
+git checkout -b new-branch-name
+```
 
 Check Available Branches:
-```git branch -a```
+```
+git branch -a
+```
 
 Switch to an Existing, Different Branch:
-```git checkout existing-branch-name```
+```
+git checkout existing-branch-name
+```
 
 Add All Changes:
-```git add .```
+```
+git add .
+```
 
 Add Specific File Changes:
-```git add file-name```
+```
+git add file-name
+```
 
 Commit Changes w/ Commit Message:
-```git commit -m "commit-message```
+```
+git commit -m "commit-message
+```
 
 Push Committed Changes:
-```git push```
+```
+git push
+```
 
 Rebase w/ Existing Branch (i.e, develop):
 ````
@@ -113,11 +127,13 @@ Rebase w/ Existing Branch (i.e, develop):
     git fetch 
     git checkout feature-branch 
     git rebase develop
-    
+
 ````
 
 Delete Branch:
-```git branch -d delete-branch-name```
+```
+git branch -d delete-branch-name
+```
 
 ---
 
