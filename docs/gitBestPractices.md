@@ -10,10 +10,11 @@ This repository follows a **Git Flow–style workflow** to ensure stable release
 - **`main`**
   - Always **stable and production-ready**
   - Must compile, run, and pass tests at all times
-  - All merges require review from another developer
+  - All merges must be reviewed previously from the develop branch by another developer
 
 - **`develop`**
   - Integration branch for upcoming releases
+  - All merges require review from another developer
   - Contains the latest completed features
   - Must remain functionally stable
 
@@ -41,7 +42,7 @@ main
 2. **Finish a feature**
 ```feature → develop → main```
     - Rebase feature onto latest `develop`
-    - Merge feature into `develop`
+    - Merge feature into `develop` with a pull request reviewed by another dev
     - Rebase `develop` onto `main`
     - Merge `develop` into `main`
 
@@ -74,12 +75,13 @@ Use the following template:
 ### Merge into `develop`
 
 - Rebase your feature branch onto `develop`
-- Self-review is acceptable if functionality is verified
+- Must be reviewed by **another developer**
 
 ### Merge into `main`
 
-- Must be reviewed by **another developer**
 - `develop` must be rebased onto `main` first
+- Merge is acceptable if functionality is verified
+
 
 ---
 
