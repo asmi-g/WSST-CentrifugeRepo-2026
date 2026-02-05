@@ -10,10 +10,11 @@ Learn more about the Space Soldering software overview, located in
 
 ## Install
 Install the following applications:
-* [STM32CubeMX](https://www.st.com/en/development-tools/stm32cubemx.html)
-* [CMake](https://cmake.org/download/)
-* [GNU ARM Embedded Toolchain](https://developer.arm.com/downloads/-/gnu-rm)
-* [OpenOCD](https://openocd.org/)
+* [STM32CubeMX - Ver 6.15.0](https://www.st.com/en/development-tools/stm32cubemx.html)
+* [CMake - Ver 4.1.1](https://cmake.org/download/)
+* [GNU ARM Embedded Toolchain - Ver 14.3, release 1](https://developer.arm.com/downloads/-/gnu-rm)
+    * NOTE: Versions older than GCC 11 will present an issue while building/flashing STM32 code
+* [OpenOCD - Ver 20251211-0.12.0](https://gnutoolchains.com/arm-eabi/openocd/)
 * [Putty](https://www.chiark.greenend.org.uk/~sgtatham/putty/) - not useful immediately but will use at some point
 
 Setup the following tools and add to your device's PATH environment variables. 
