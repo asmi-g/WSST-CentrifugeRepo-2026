@@ -1,31 +1,20 @@
 # WSST-CentrifugeRepo-2026
 
-## Git Best Practices
-Read through Git Best Practices, [linked Here](https://nvie.com/posts/a-successful-git-branching-model/#the-main-branches).
+## Git Version Control
+**REQUIRED**: Before doing any development in this repository, read through and follow the Git best practices described in 
+```/docs/gitBestPractices.md```
 
-MAIN IDEA:
-* Master/Main branch:
-    * Main, FUNCTIONAL source code. I.e, code in main is assumed to be in a working state at ALL times
-* Develop branch:
-    * This is the branch where the source code of HEAD always reflects a state with the latest delivered development changes for the next release. When the source code in the develop branch reaches a stable point and is ready to be released, all of the changes should be merged back into master. 
-* Feature branches:
-    * Branch OFF of develop
-    * When functional, merge back INTO develop
-
-Thus, at a high level, the development workflow looks like:
-1. Start feature: main > develop > feature 
-    * Implement changes into a copy of the "develop" branch's source code, which is a copy of the "main" branch's source code
-2. Merge feature: main < develop < feature 
-    * When done, merge changes into the "develop" branch's source code, then into "main"
-
-ALWAYS REMEMBER TO MAKE A MERGE REQUEST INTO BOTH, THE DEVELOP AND MAIN BRANCH
+## System Overview
+Learn more about the Space Soldering software overview, located in
+```/docs/systemOverview.md```
 
 ## Install
 Install the following applications:
-* [STM32CubeMX](https://www.st.com/en/development-tools/stm32cubemx.html)
-* [CMake](https://cmake.org/download/)
-* [GNU ARM Embedded Toolchain](https://developer.arm.com/downloads/-/gnu-rm)
-* [OpenOCD](https://openocd.org/)
+* [STM32CubeMX - Ver 6.15.0](https://www.st.com/en/development-tools/stm32cubemx.html)
+* [CMake - Ver 4.1.1](https://cmake.org/download/)
+* [GNU ARM Embedded Toolchain - Ver 14.3, release 1](https://developer.arm.com/downloads/-/gnu-rm)
+    * NOTE: Versions older than GCC 11 will present an issue while building/flashing STM32 code
+* [OpenOCD - Ver 20251211-0.12.0](https://gnutoolchains.com/arm-eabi/openocd/)
 * [Putty](https://www.chiark.greenend.org.uk/~sgtatham/putty/) - not useful immediately but will use at some point
 
 Setup the following tools and add to your device's PATH environment variables. 
