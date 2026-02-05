@@ -72,3 +72,5 @@ To clean a build, run the following from the app directory:
 ```
 rm -rf build/
 ```
+
+TEST CHANGE FOR BRANCH PROTECTION RULE
