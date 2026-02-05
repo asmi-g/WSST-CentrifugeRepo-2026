@@ -47,7 +47,6 @@ main
     - Merge `develop` into `main`
 
 ---
-
 ## Branch Naming Convention
 
 All feature branches **must** follow this format:
@@ -85,6 +84,58 @@ Use the following template:
 
 ---
 
+## Helpful Git Commands
+
+Create New Branch:
+```
+git checkout -b new-branch-name
+```
+
+Check Available Branches:
+```
+git branch -a
+```
+
+Switch to an Existing, Different Branch:
+```
+git checkout existing-branch-name
+```
+
+Add All Changes:
+```
+git add .
+```
+
+Add Specific File Changes:
+```
+git add file-name
+```
+
+Commit Changes w/ Commit Message:
+```
+git commit -m "commit-message
+```
+
+Push Committed Changes:
+```
+git push
+```
+
+Rebase w/ Existing Branch (i.e, develop):
+````
+    git checkout develop
+    git fetch 
+    git checkout feature-branch 
+    git rebase develop
+
+````
+
+Delete Branch:
+```
+git branch -d delete-branch-name
+```
+
+---
 
 ## Linking & Closing Git Issues
 
