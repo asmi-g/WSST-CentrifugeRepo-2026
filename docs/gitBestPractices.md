@@ -84,6 +84,14 @@ Use the following template:
 
 ---
 
+## SHORTCUT: Create branch and link issue 
+Following are instructions to automatically create a branch, given an existing Git issue:
+1. Head to your assigned issue, look under the Development section in the right-hand window
+2. Click "Create a branch"
+3. Change branch source from "main" to "develop"
+4. Rename branch name to take out the issue number, so that the branch name follows the conventions defined in docs/gitBestPractices.md
+5. Proceed to checkout locally, following the terminal commands listed on screen
+
 ## Helpful Git Commands
 
 Create New Branch:
