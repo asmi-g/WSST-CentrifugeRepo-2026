@@ -3,7 +3,7 @@
 This project integrates **IronOS** (firmware) and **blisp** (flashing tool) to build and flash firmware onto the Pinecil V2 (BL70x).
 
 The workflow is:
-1. One-Time Setup (New Machine, build blisp)
+1. [One-Time Setup (New Machine, build blisp)](#one-time-setup-new-machine)
 2. Making Changes to IronOS: follow [IronOS Development Workflow](#ironos-development-workflow)
 3. Testing on Pinecil: [Building and Flashing IronOS](#Building-and-Flashing-IronOS) (Generates a `.bin` artifact and flashes the firmware using `blisp`)
 
@@ -14,7 +14,7 @@ The workflow is:
 Make sure to have the following:
 
 - All applications/pre-reqs mentioned in main README
-- `docker` (recommended for [IronOS builds](https://github.com/Ralim/IronOS/blob/dev/Documentation/Development.md#building-pinecil-v2))
+- `docker` (recommended for [IronOS builds](https://github.com/Ralim/IronOS/blob/dev/Documentation/Development.md#building-pinecil-v2), [Install Docker Desktop](https://docs.docker.com/desktop/setup/install/windows-install/))
 - USB access to the Pinecil V2
 
 ---
@@ -27,18 +27,17 @@ your-main-repo/
 ├── app
 ├── docs
 ├── scripts/ # Build + flash scripts
-├── IronOS/ # IronOS source (forked, submodule) TODO: Fork + add submodule
+├── IronOS/ # IronOS source (forked, submodule)
 ├───── source/Core/... # make your IronOS changes here
 ├───── ...
 ├── tools/ 
-├───── blisp/ # blisp source (submodule) TODO: Add submodule
+├───── blisp/ # blisp source (submodule)
 ├───── bin/ # Built tools (generated, not committed)
 ├── out/ironos/ # Artifacts (generated, not committed)
 └── README.md
 ```
 
 Generated directories (`tools/bin/`, `out/`) should not be committed to Git.
-TODO: cleaner way to organize this?
 
 ---
 
@@ -91,7 +90,7 @@ git commit -m "Modify IronOS: <description>"
 git push -u origin <your-feature-branch> # TODO: how would this fit into our current git workflow
 ```
 
-Generated directories (`tools/bin/`, `out/`) should not be committed to Git. (TODO: add these to gitignore)
+Generated directories (`tools/bin/`, `out/`) should not be committed to Git.
 
 ### 6. Update the main repo to point to this new commit
 
@@ -117,10 +116,11 @@ That ensures they’re on the exact IronOS commit the main repo expects.
 ### 2. Build IronOS (Pinecil v2 Firmware)
 
 This builds IronOS using its Docker-based environment and outputs a `.bin` file into `out/ironos/`, run from the main project directory:
-```
+```sh
+chmod +x ./scripts/*.sh # only have to do once
 ./scripts/build_ironos_pinecilv2.sh EN
 ```
-You should see a firmware file at: `out/ironos/Pinecilv2_EN.bin`
+You should see a firmware file at: `out/ironos/Pinecilv2_EN.bin`, Re-running `./scripts/build_ironos_pinecilv2.sh EN` will overwrite existing `Pinecilv2_EN.bin` in the directory.
 
 ### 2. Flash firmware to Pinecil
 
@@ -161,7 +161,7 @@ cmake --build tools/blisp/build --config Release
 
 mkdir -p tools/bin
 
-cp tools/blisp/build/tools/blisp tools/bin/blisp 2>/dev/null || cp tools/blisp/build/Release/blisp tools/bin/blisp # copy blisp executable, TODO: Might have to change this path
+cp tools/blisp/build/tools/blisp/blisp tools/bin/blisp # TODO: tools/blisp/build/tools/blisp/blisp (path of blisp executable) might be different for windows
 
 chmod +x tools/bin/blisp
 ```
