@@ -40,6 +40,77 @@ your-main-repo/
 Generated directories (`tools/bin/`, `out/`) should not be committed to Git.
 
 ---
+## Building and Flashing IronOS
+
+### 0. One-Time Setup (if applicable)
+If not already done so, go through the [One-Time Setup](#one-time-setup-new-machine) section to setup and build blisp.
+
+### 1. Start Docker Desktop
+First ensure that Docker Desktop is installed, as indicated in [Prerequisites](#Prerequisites).
+
+Then in your device's search bar, look up and click on the "Docker Desktop" app to start the Docker engine on your device.
+
+### 2. Build IronOS (Pinecil v2 Firmware)
+
+This builds IronOS using its Docker-based environment and outputs a `.bin` file into `out/ironos/`, run from the main project directory:
+```sh
+chmod +x ./scripts/*.sh # only have to do once
+./scripts/build_ironos_pinecilv2.sh EN
+```
+You should see a firmware file at: `out/ironos/Pinecilv2_EN.bin`, Re-running `./scripts/build_ironos_pinecilv2.sh EN` will overwrite existing `Pinecilv2_EN.bin` in the directory.
+
+### 3. Flash firmware to Pinecil
+
+Put the Pinecil into flash mode: <br>
+1. Connect the Pinecil V2 to your PC
+2. Long hold the [-] button before plugging the USB-C cable into the back of the Pinecil. Keep holding down the [-] for ~10-15 seconds after plugging in the cable, then release the button.
+3. Screen should be black/empty which means Pinecil is in Flashing Mode. If you have issues, try again, do not plug the USB-C cable into Pinecil until you first press & hold the [-] button. Flip the cable over or try another port/cable/PC if you still have issues.
+4. Pinecil will not show in the PC as a USB data drive. On Windows, you will hear a single beep when connected in flash mode.
+
+To flash, run:
+```
+./scripts/flash_pinecilv2.sh out/ironos/Pinecilv2_EN.bin
+```
+
+Note: `flash_pinecilv2.sh` checks if blisp exists, copies the `.bin` file next to the blisp executable, then flashes with the command `sudo ./blisp write -c bl70x --reset <firmware>.bin` (as per [IronOS docs](https://pine64.org/documentation/Pinecil/Firmware/#option-2-blisp)). Refer back to these docs if you run into issues.
+
+---
+
+# One-Time Setup (New Machine)
+
+### 1. Initialize Git Submodules
+
+This repository contains submodules (e.g., for `tools/blisp`, `IronOS`):
+
+```sh
+git submodule update --init --recursive
+```
+
+### 2. Build blisp (Flashing Tool)
+
+We build blisp once and store the executable at: `tools/bin/blisp`
+
+Run:
+```sh
+source app/init/.bashrc
+
+cmake -S tools/blisp -B tools/blisp/build -G "MinGW Makefiles"  -DBLISP_BUILD_CLI=ON -DCMAKE_C_COMPILER=CC   -DCMAKE_CXX_COMPILER=CXX
+
+cmake --build tools/blisp/build --config Release
+
+mkdir -p tools/bin
+
+cp tools/blisp/build/tools/blisp/blisp tools/bin/blisp # TODO: tools/blisp/build/tools/blisp/blisp (path of blisp executable) might be different for windows
+
+chmod +x tools/bin/blisp
+```
+
+You normally do not need to rebuild blisp unless:
+- The tools/blisp submodule is updated
+- You delete tools/bin/blisp
+- Your toolchain changes
+
+---
 
 # IronOS Development Workflow
 
@@ -111,65 +182,9 @@ git submodule update --init --recursive
 ```
 That ensures they’re on the exact IronOS commit the main repo expects.
 
-## Building and Flashing IronOS
-
-### 2. Build IronOS (Pinecil v2 Firmware)
-
-This builds IronOS using its Docker-based environment and outputs a `.bin` file into `out/ironos/`, run from the main project directory:
-```sh
-chmod +x ./scripts/*.sh # only have to do once
-./scripts/build_ironos_pinecilv2.sh EN
-```
-You should see a firmware file at: `out/ironos/Pinecilv2_EN.bin`, Re-running `./scripts/build_ironos_pinecilv2.sh EN` will overwrite existing `Pinecilv2_EN.bin` in the directory.
-
-### 2. Flash firmware to Pinecil
-
-Put the Pinecil into flash mode: <br>
-1. Connect the Pinecil V2 to your PC
-2. Long hold the [-] button before plugging the USB-C cable into the back of the Pinecil. Keep holding down the [-] for ~10-15 seconds after plugging in the cable, then release the button.
-3. Screen should be black/empty which means Pinecil is in Flashing Mode. If you have issues, try again, do not plug the USB-C cable into Pinecil until you first press & hold the [-] button. Flip the cable over or try another port/cable/PC if you still have issues.
-4. Pinecil will not show in the PC as a USB data drive. On Windows, you will hear a single beep when connected in flash mode.
-
-To flash, run:
-```
-./scripts/flash_pinecilv2.sh out/ironos/Pinecilv2_EN.bin
-```
-
-Note: `flash_pinecilv2.sh` checks if blisp exists, copies the `.bin` file next to the blisp executable, then flashes with the command `sudo ./blisp write -c bl70x --reset <firmware>.bin` (as per [IronOS docs](https://pine64.org/documentation/Pinecil/Firmware/#option-2-blisp)). Refer back to these docs if you run into issues.
-
 ---
 
-# One-Time Setup (New Machine)
-
-### 1. Initialize Git Submodules
-
-This repository contains submodules (e.g., for `tools/blisp`, `IronOS`):
-
-```sh
-git submodule update --init --recursive
-```
-
-### 2. Build blisp (Flashing Tool)
-
-We build blisp once and store the executable at: `tools/bin/blisp`
-
-Run:
-```sh
-cmake -S tools/blisp -B tools/blisp/build -DBLISP_BUILD_CLI=ON
-
-cmake --build tools/blisp/build --config Release
-
-mkdir -p tools/bin
-
-cp tools/blisp/build/tools/blisp/blisp tools/bin/blisp # TODO: tools/blisp/build/tools/blisp/blisp (path of blisp executable) might be different for windows
-
-chmod +x tools/bin/blisp
-```
-
-You normally do not need to rebuild blisp unless:
-- The tools/blisp submodule is updated
-- You delete tools/bin/blisp
-- Your toolchain changes
+# To-Dos:
 
 TODO: Add blisp build artifacts to gitignore, [blisp reference](https://github.com/pine64/blisp#how-to-update-pinecil-v2)
 
