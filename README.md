@@ -35,20 +35,22 @@ openocd --version
 
 ## Initialize
 Run the environment variable initialization. BEFORE YOU DO, check the paths in the bash script to see if they match where you installed your Arm GNU Toolchain components. IF NOT, change them to match, and add your own script to /app/init for your own environment. DO NOT modify the existing .bashrc. Call it something like .bashrc-asmi, and replace your own name:
-````
+````sh
 cd app/init
 source .bashrc
 ````
 
 ## Configure the Build
 Run the following command in the /app/ directory, and REMEMBER TO CHANGE THE BOARD PARAMETER TO MATCH WHICH BOARD YOU'RE WORKING WITH:
-```
-cmake -S . -B build -G "Unix Makefiles"   -DCMAKE_TOOLCHAIN_FILE="cmake/toolchain-arm-none-eabi.cmake"   -DCMAKE_C_COMPILER="C:/Program Files (x86)/GNU Arm Embedded Toolchain/14.3 2023.07/bin/arm-none-eabi-gcc.exe"   -DCMAKE_CXX_COMPILER="C:/Program Files (x86)/GNU Arm Embedded Toolchain/14.3 2023.07/bin/arm-none-eabi-g++.exe"   -DBOARD=F411RE
+```sh
+cd ..
+cmake -S . -B build -G "Unix Makefiles"   -DCMAKE_TOOLCHAIN_FILE="cmake/toolchain-arm-none-eabi.cmake" -DCMAKE_C_COMPILER=CC   -DCMAKE_CXX_COMPILER=CXX   -DBOARD=F411RE
+
 ```
 
 ## Build
 Run the following from the /app/ directory.
-```
+```sh
 cmake --build build/
 ```
 
@@ -58,6 +60,6 @@ To flash your code, connect your board. Then, start a debug session. In the top 
 
 ## Clean Build
 To clean a build, run the following from the app directory:
-```
+```sh
 rm -rf build/
 ```
