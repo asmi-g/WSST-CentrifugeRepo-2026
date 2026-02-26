@@ -43,7 +43,8 @@ source .bashrc
 ## Configure the Build
 Run the following command in the /app/ directory, and REMEMBER TO CHANGE THE BOARD PARAMETER TO MATCH WHICH BOARD YOU'RE WORKING WITH:
 ```
-cmake -S . -B build -G "Unix Makefiles"   -DCMAKE_TOOLCHAIN_FILE="cmake/toolchain-arm-none-eabi.cmake"   -DCMAKE_C_COMPILER="C:/Program Files (x86)/GNU Arm Embedded Toolchain/14.3 2023.07/bin/arm-none-eabi-gcc.exe"   -DCMAKE_CXX_COMPILER="C:/Program Files (x86)/GNU Arm Embedded Toolchain/14.3 2023.07/bin/arm-none-eabi-g++.exe"   -DBOARD=F411RE
+cd ..
+cmake -S . -B build -G "Unix Makefiles"   -DCMAKE_TOOLCHAIN_FILE="cmake/toolchain-arm-none-eabi.cmake" -DCMAKE_C_COMPILER=CC   -DCMAKE_CXX_COMPILER=CXX   -DBOARD=F411RE
 ```
 
 ## Build
