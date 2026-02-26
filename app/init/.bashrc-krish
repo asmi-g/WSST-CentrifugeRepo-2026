@@ -1,0 +1,3 @@
+export CC="/c/Program Files/Arm GNU Toolchain mingw-w64-x86_64-arm-none-eabi/bin/arm-none-eabi-gcc.exe"
+export CXX="/c/Program Files/Arm GNU Toolchain mingw-w64-x86_64-arm-none-eabi/bin/arm-none-eabi-g++.exe"
+export PATH="/c/Program Files/Arm GNU Toolchain mingw-w64-x86_64-arm-none-eabi/bin:$PATH"
