@@ -13,14 +13,27 @@ include(core/${BOARD}/board.cmake)
 # Application sources
 file(GLOB APP_SOURCES src/*.c core/App/*.c)
 
+file(GLOB FREERTOS_SOURCES
+    ${CMAKE_SOURCE_DIR}/boards/${BOARD}/Middlewares/Third_Party/FreeRTOS/Source/*.c
+    ${CMAKE_SOURCE_DIR}/boards/${BOARD}/Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/*.c
+    ${CMAKE_SOURCE_DIR}/boards/${BOARD}/Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2/*.c
+    ${CMAKE_SOURCE_DIR}/boards/${BOARD}/Middlewares/Third_Party/FreeRTOS/Source/portable/MemMang/heap_4.c   # Or heap_1.c etc.
+)
+
 add_executable(${PROJECT_NAME}.elf
     ${APP_SOURCES}
     ${SYSTEM_FILE}
     ${STARTUP_FILE}
     ${HAL_SOURCES}
+    ${FREERTOS_SOURCES}
 )
 
-target_include_directories(${PROJECT_NAME}.elf PRIVATE ${HAL_INCLUDE_DIRS})
+target_include_directories(${PROJECT_NAME}.elf PRIVATE 
+    ${HAL_INCLUDE_DIRS}
+    ${CMAKE_SOURCE_DIR}/boards/${BOARD}/Middlewares/Third_Party/FreeRTOS/Source/include
+    ${CMAKE_SOURCE_DIR}/boards/${BOARD}/Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2
+    ${CMAKE_SOURCE_DIR}/boards/${BOARD}/Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F
+)
 target_compile_definitions(${PROJECT_NAME}.elf PRIVATE ${MCU_DEFINE})
 target_compile_options(${PROJECT_NAME}.elf PRIVATE -mcpu=cortex-m4 -mthumb -O0 -g -Wall)
 target_link_options(${PROJECT_NAME}.elf PRIVATE -T${LINKER_SCRIPT} -Wl,--gc-sections)
