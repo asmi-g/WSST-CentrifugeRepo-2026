@@ -5,7 +5,7 @@ This project integrates **IronOS** (firmware) and **blisp** (flashing tool) to b
 The workflow is:
 1. [One-Time Setup (New Machine, build blisp)](#one-time-setup-new-machine)
 2. Making Changes to IronOS: follow [IronOS Development Workflow](#ironos-development-workflow)
-3. Testing on Pinecil: [Building and Flashing IronOS](#Building-and-Flashing-IronOS) (Generates a `.bin` artifact and flashes the firmware using `blisp`)
+3. Testing on Pinecil: [Flashing IronOS Firmware](#flashing-current-ironos-firmware) 
 
 ---
 
