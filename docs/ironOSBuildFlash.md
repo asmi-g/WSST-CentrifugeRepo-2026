@@ -47,7 +47,7 @@ Generated directories (`tools/bin/`, `tools/out/`) should not be committed to Gi
 
 ---
 ## Flashing Current IronOS Firmware
-To flash the current IronOS executable,`firmware/ironos/current/Pinecilv2_EN.bin`:
+To flash the current IronOS executable,`tools/firmware/ironos/current/Pinecilv2_EN.bin`:
 
 ### 0. One-Time Setup (if applicable)
 If not already done so, go through the [One-Time Setup](#one-time-setup-new-machine) section to setup and build blisp.
@@ -82,7 +82,7 @@ Put the Pinecil into flash mode: <br>
 4. Pinecil will not show in the PC as a USB data drive. On Windows, you will hear a single beep when connected in flash mode.
 
 ### 3. Flash Executable
-Flashes the ironOS executable found in `firmware/ironos/current/Pinecilv2_EN.bin`:
+Flashes the ironOS executable found in `tools/firmware/ironos/current/Pinecilv2_EN.bin`:
 
 ```sh
 cd tools
@@ -92,7 +92,7 @@ chmod +x ./scripts/*.sh # only have to do once
 
 <b>Note:</b>
 
- `flash_pinecilv2.sh` checks if blisp exists, copies the `.bin` file next to the blisp executable, then flashes with the command `sudo ./blisp write -c bl70x --reset <firmware>.bin` (as per [IronOS docs](https://pine64.org/documentation/Pinecil/Firmware/#option-2-blisp)). Refer back to these docs if you run into issues. If a current IronOS executable is not found, the script fallsback to the default executable in `firmware/ironos/fallback/Pinecilv2_EN.bin`.
+ `flash_pinecilv2.sh` checks if blisp exists, copies the `.bin` file next to the blisp executable, then flashes with the command `sudo ./blisp write -c bl70x --reset <firmware>.bin` (as per [IronOS docs](https://pine64.org/documentation/Pinecil/Firmware/#option-2-blisp)). Refer back to these docs if you run into issues. If a current IronOS executable is not found, the script fallsback to the default executable in `tools/firmware/ironos/fallback/Pinecilv2_EN.bin`.
 
 ---
 
@@ -189,9 +189,9 @@ Put the Pinecil into [Flash Mode](#2-flash-mode), then flash your local IronOS b
 ```
 <b>Important Note:</b>
 
-There is a fallback/default Pinecil firmware in: `firmware/fallback` (TODO: maybe move this to tools as well).
+There is a fallback/default Pinecil firmware in: `tools/firmware/fallback`
 
-If you want to revert back to the default Pinecil/IronOS firmware, replace the `.bin` path above with `firmware/ironos/fallback/Pinecilv2_EN.bin` and run that flash command.
+If you want to revert back to the default Pinecil/IronOS firmware, replace the `.bin` path above with `tools/firmware/ironos/fallback/Pinecilv2_EN.bin` and run that flash command.
 
 Repeat edit → build → flash until satisfied. Continue to step 5 when ready AFTER testing.
 
@@ -201,7 +201,7 @@ Repeat edit → build → flash until satisfied. Continue to step 5 when ready A
 
 When you're ready, copy your tested `Pinecilv2_EN.bin` into `tools/firmware/ironos/current` (replace the current one that's there), still from `/tools`:
 ```sh
-cp out/ironos/Pinecilv2_EN.bin ../firmware/ironos/current
+cp out/ironos/Pinecilv2_EN.bin firmware/ironos/current
 ```
 
 ### 5. Commit and push your IronOS changes

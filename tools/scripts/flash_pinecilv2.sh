@@ -3,7 +3,7 @@ set -euo pipefail
 
 # Usage:
 #   ./scripts/flash_pinecilv2.sh
-#     - flashes firmware/current/Pinecilv2_EN.bin if present, otherwise fallback
+#     - flashes tools/firmware/current/Pinecilv2_EN.bin if present, otherwise fallback
 #
 #   ./scripts/flash_pinecilv2.sh path/to/Pinecilv2_EN.bin
 #     - flashes the given file directly
@@ -17,8 +17,8 @@ FW_BIN="${1:-}"
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 BLISP="$ROOT/tools/bin/blisp"
 
-CURRENT="$ROOT/firmware/ironos/current/Pinecilv2_EN.bin"
-FALLBACK="$ROOT/firmware/ironos/fallback/Pinecilv2_EN.bin"
+CURRENT="$ROOT/tools/firmware/ironos/current/Pinecilv2_EN.bin"
+FALLBACK="$ROOT/tools/firmware/ironos/fallback/Pinecilv2_EN.bin"
 
 die() { echo "ERROR: $*" >&2; exit 1; }
 
