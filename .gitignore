@@ -4,5 +4,5 @@ app/build/*
 app/boards/F401RE/build/*
 app/boards/F411RE/build/*
 
-tools/bin/*
-out/*
+tools/bin/
+tools/out/
