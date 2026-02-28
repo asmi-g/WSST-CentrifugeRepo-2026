@@ -29,11 +29,11 @@ your-main-repo/
 ├───── ironOSBuildFlash.md
 ├───── gitBestPractices.md
 ├───── ...
-├── firmware
-├───── ironos
-├──────── current # Our current ironos executable
-├──────── fallback # Fallback/default ironos executable
 ├── tools/ 
+├───── firmware
+├──────── ironos
+├────────── current # Our current ironos executable
+├────────── fallback # Fallback/default ironos executable
 ├───── scripts/ # Build + flash scripts
 ├───── IronOS/ # IronOS source (forked, submodule)
 ├──────── source/Core/... # make your IronOS changes here
