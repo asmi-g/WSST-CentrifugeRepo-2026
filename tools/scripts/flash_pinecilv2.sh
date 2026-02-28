@@ -14,7 +14,7 @@ set -euo pipefail
 
 FW_BIN="${1:-}"
 
-ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 BLISP="$ROOT/tools/bin/blisp"
 
 CURRENT="$ROOT/firmware/ironos/current/Pinecilv2_EN.bin"
