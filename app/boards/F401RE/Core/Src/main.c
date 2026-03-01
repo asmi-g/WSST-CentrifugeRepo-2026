@@ -355,12 +355,23 @@ static void MX_GPIO_Init(void)
 void StartUartTxTask(void *argument)
 {
   /* USER CODE BEGIN 5 */
+<<<<<<< HEAD
 
+=======
+  uint8_t Task1WritePayload[] = "Task 1\n\r"; //Data to send
+>>>>>>> 9bd5bf5 (stage-2-issue-8-gui-development-microcontroller-prototyping: Started UART RX in RTOS Task 2)
 
   /* Infinite loop */
   for(;;)
   {
+<<<<<<< HEAD
     //uart_tx("Task 1 is running\n\r");
+=======
+    osMutexAcquire(uartMutexHandle, osWaitForever);
+    printf("Task 1 is running\n\r");
+    HAL_UART_Transmit(&huart2, Task1WritePayload, strlen((char*)Task1WritePayload), HAL_MAX_DELAY);
+    osMutexRelease(uartMutexHandle);
+>>>>>>> 9bd5bf5 (stage-2-issue-8-gui-development-microcontroller-prototyping: Started UART RX in RTOS Task 2)
     osDelay(1000);
 
   }
