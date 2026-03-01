@@ -356,12 +356,15 @@ static void MX_GPIO_Init(void)
 void StartUartTxTask(void *argument)
 {
   /* USER CODE BEGIN 5 */
-
+  uint8_t Task1WritePayload[] = "Task 1\n\r"; //Data to send
 
   /* Infinite loop */
   for(;;)
   {
-    //uart_tx("Task 1 is running\n\r");
+    osMutexAcquire(uartMutexHandle, osWaitForever);
+    printf("Task 1 is running\n\r");
+    HAL_UART_Transmit(&huart2, Task1WritePayload, strlen((char*)Task1WritePayload), HAL_MAX_DELAY);
+    osMutexRelease(uartMutexHandle);
     osDelay(1000);
 
   }
@@ -377,46 +380,16 @@ void StartUartTxTask(void *argument)
 /* USER CODE END Header_StartMotorTask */
 void StartMotorTask(void *argument)
 {
-  /* USER CODE BEGIN StartMotorTask */
-  // Integrates PWM with UART input
-  pwm_t motor1;
-  uart_message_t msg;
-
-  pwm_init(&motor1, &htim2, TIM_CHANNEL_1);
-  pwm_start(&motor1);
-
+  /* USER CODE BEGIN StartTask2 */
+  uint8_t Task2ReadPayload[100]; // Allocate buffer for received data
   /* Infinite loop */
   for(;;)
   {
-    if(osMessageQueueGet(uartRxMessageQueueHandle, &msg, NULL, 10) == osOK)
-    {
-      if(strcmp(msg.command, "ON") == 0)
-      {
-        pwm_set(&motor1, 255);
-      }
-      else if(strcmp(msg.command, "OFF") == 0)
-      {
-        pwm_set(&motor1, 0);
-      }
-      else
-      {
-        int duty = atoi(msg.command);
-        if(duty < 0) duty = 0;
-        if(duty > 255) duty = 255;
-        // Only set PWM if string is a valid number
-        printf("Received command: '%s', parsed duty: %d\n", msg.command, duty);
-        if(duty != 0 || strcmp(msg.command, "0") == 0)
-        {
-          pwm_set(&motor1, (uint8_t)duty);
-        }
-        else
-        {
-          // invalid string, do nothing or print warning
-          printf("Unknown command: '%s'\n", msg.command);
-        }
-      }
-    }
-    osDelay(100);
+    osMutexAcquire(uartMutexHandle, osWaitForever);
+    printf("Task 2 is running\n\r");
+    HAL_UART_Receive_IT(&huart2, Task2ReadPayload, strlen((char*)Task2ReadPayload));
+    osMutexRelease(uartMutexHandle);
+    osDelay(1000);
   }
   /* USER CODE END StartMotorTask */
 }
