@@ -20,12 +20,18 @@ file(GLOB FREERTOS_SOURCES
     ${CMAKE_SOURCE_DIR}/boards/${BOARD}/Middlewares/Third_Party/FreeRTOS/Source/portable/MemMang/heap_4.c   # Or heap_1.c etc.
 )
 
+# Custom driver sources
+file(GLOB DRIVER_SOURCES
+    ${CMAKE_SOURCE_DIR}/drivers/src/*.c
+)
+
 add_executable(${PROJECT_NAME}.elf
     ${APP_SOURCES}
     ${SYSTEM_FILE}
     ${STARTUP_FILE}
     ${HAL_SOURCES}
     ${FREERTOS_SOURCES}
+    ${DRIVER_SOURCES}
 )
 
 target_include_directories(${PROJECT_NAME}.elf PRIVATE 
@@ -33,6 +39,8 @@ target_include_directories(${PROJECT_NAME}.elf PRIVATE
     ${CMAKE_SOURCE_DIR}/boards/${BOARD}/Middlewares/Third_Party/FreeRTOS/Source/include
     ${CMAKE_SOURCE_DIR}/boards/${BOARD}/Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2
     ${CMAKE_SOURCE_DIR}/boards/${BOARD}/Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F
+    ${CMAKE_SOURCE_DIR}/drivers/inc
+
 )
 target_compile_definitions(${PROJECT_NAME}.elf PRIVATE ${MCU_DEFINE})
 target_compile_options(${PROJECT_NAME}.elf PRIVATE -mcpu=cortex-m4 -mthumb -O0 -g -Wall)
