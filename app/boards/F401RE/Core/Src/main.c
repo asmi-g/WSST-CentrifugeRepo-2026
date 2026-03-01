@@ -358,14 +358,14 @@ static void MX_GPIO_Init(void)
 void StartTask1(void *argument)
 {
   /* USER CODE BEGIN 5 */
-  uint8_t Task1Payload[] = "Task 1\n\r"; //Data to send
+  uint8_t Task1WritePayload[] = "Task 1\n\r"; //Data to send
 
   /* Infinite loop */
   for(;;)
   {
     osMutexAcquire(uartMutexHandle, osWaitForever);
     printf("Task 1 is running\n\r");
-    HAL_UART_Transmit(&huart2, Task1Payload, strlen((char*)Task1Payload), HAL_MAX_DELAY);
+    HAL_UART_Transmit(&huart2, Task1WritePayload, strlen((char*)Task1WritePayload), HAL_MAX_DELAY);
     osMutexRelease(uartMutexHandle);
     osDelay(1000);
 
@@ -383,13 +383,13 @@ void StartTask1(void *argument)
 void StartTask2(void *argument)
 {
   /* USER CODE BEGIN StartTask2 */
-  uint8_t Task2Payload[] = "Task 2\n\r";
+  uint8_t Task2ReadPayload[100]; // Allocate buffer for received data
   /* Infinite loop */
   for(;;)
   {
     osMutexAcquire(uartMutexHandle, osWaitForever);
     printf("Task 2 is running\n\r");
-    HAL_UART_Transmit(&huart2, Task2Payload, strlen((char*)Task2Payload), HAL_MAX_DELAY);
+    HAL_UART_Receive_IT(&huart2, Task2ReadPayload, strlen((char*)Task2ReadPayload));
     osMutexRelease(uartMutexHandle);
     osDelay(1000);
   }
