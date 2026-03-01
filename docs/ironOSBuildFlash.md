@@ -154,7 +154,9 @@ Edit files in: `tools/IronOS/source/Core...`.
 Note – TODOs:
 <br>
 1) Implement handler functions for incoming UART commands (get current temperature and set temperature controls), see PIDThread and GUIThread for how temp controls are set currently (in `IronOS/source/Core/Threads/GUIThread.cpp`)
-2) Heating Profile Thread? (to track iron states, may not be required)
+2) Make sure iron doesn't go into sleep mode under microgravity (currently sleeps after setting the iron down after about a minute)m see MOVThread.cpp for accelerometer settings
+3) Change start-up behaviour to "S=heat to soldering temp", see Settings.md
+4) Heating Profile Thread? (to track iron states, may not be required)
 <br>
 
 ### 4. Test your changes: Build IronOS Executable + Flash to Pinecil
