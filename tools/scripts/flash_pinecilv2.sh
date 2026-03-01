@@ -17,8 +17,8 @@ FW_BIN="${1:-}"
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 BLISP="$ROOT/bin/blisp"
 
-CURRENT="$ROOT/firmware/ironos/current/Pinecilv2_EN.bin"
-FALLBACK="$ROOT/firmware/ironos/fallback/Pinecilv2_EN.bin"
+TRACKED="$ROOT/firmware/ironos/tracked/Pinecilv2_EN.bin"
+DEFAULT="$ROOT/firmware/ironos/default/Pinecilv2_EN.bin"
 
 die() { echo "ERROR: $*" >&2; exit 1; }
 
@@ -37,14 +37,14 @@ choose_firmware() {
     return 0
   fi
 
-  # flash current tracked firmware, else fallback
-  if [[ -f "$CURRENT" ]]; then
-    echo "$CURRENT"
+  # flash current tracked firmware, else default
+  if [[ -f "$TRACKED" ]]; then
+    echo "$TRACKED"
     return 0
   fi
 
-  [[ -f "$FALLBACK" ]] || die "fallback firmware not found: $FALLBACK"
-  echo "$FALLBACK"
+  [[ -f "$DEFAULT" ]] || die "fallback firmware not found: $DEFAULT"
+  echo "$DEFAULT"
 }
 
 USE_BIN="$(choose_firmware)"
