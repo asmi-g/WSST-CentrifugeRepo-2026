@@ -14,11 +14,11 @@ set -euo pipefail
 
 FW_BIN="${1:-}"
 
-ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
-BLISP="$ROOT/tools/bin/blisp"
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+BLISP="$ROOT/bin/blisp"
 
-CURRENT="$ROOT/tools/firmware/ironos/current/Pinecilv2_EN.bin"
-FALLBACK="$ROOT/tools/firmware/ironos/fallback/Pinecilv2_EN.bin"
+CURRENT="$ROOT/firmware/ironos/current/Pinecilv2_EN.bin"
+FALLBACK="$ROOT/firmware/ironos/fallback/Pinecilv2_EN.bin"
 
 die() { echo "ERROR: $*" >&2; exit 1; }
 
@@ -43,7 +43,6 @@ choose_firmware() {
     return 0
   fi
 
-  echo "Current firmware not found; using fallback."
   [[ -f "$FALLBACK" ]] || die "fallback firmware not found: $FALLBACK"
   echo "$FALLBACK"
 }
