@@ -3,7 +3,7 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 IRONOS="$ROOT/tools/IronOS"
-OUTDIR="$ROOT/tools/out/ironos"
+OUTDIR="$ROOT/tools/firmware/ironos/out"
 HEXDIR="$IRONOS/source/Hexfile"
 
 mkdir -p "$OUTDIR"

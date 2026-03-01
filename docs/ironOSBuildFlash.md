@@ -32,18 +32,18 @@ your-main-repo/
 ├── tools/ 
 ├───── firmware
 ├──────── ironos
-├────────── current # Our current ironos executable
-├────────── fallback # Fallback/default ironos executable
+├────────── default # Fallback/default ironos executable
+├────────── out # Local ironos exectuable (built by you, not tracked or committed)
+├────────── tracked # Our tracked ironos executable
 ├───── scripts/ # Build + flash scripts
 ├───── IronOS/ # IronOS source (forked, submodule)
 ├──────── source/Core/... # make your IronOS changes here
 ├───── blisp/ # blisp source (forked, submodule)
 ├───── bin/ # Built tools (generated, not committed)
-├───── out/ironos/ # Artifacts (generated, not committed)
 └── README.md
 ```
 
-Generated directories (`tools/bin/`, `tools/out/`) should not be committed to Git.
+Generated directories (`tools/bin/`, `tools/firmware/ironos/out/`) should not be committed to Git.
 
 ---
 ## Flashing Current IronOS Firmware
@@ -169,25 +169,25 @@ First ensure that Docker Desktop is installed, as indicated in [Prerequisites](#
 Then in your device's search bar, look up and click on the "Docker Desktop" app to start the Docker engine on your device.
 
 #### b) Build your firmware locally (Docker build)
-This builds IronOS using its Docker-based environment and outputs your IronOS Executable (a `.bin` file) into `tools/out/ironos/`, run from the main project directory:
+This builds IronOS using its Docker-based environment and outputs your IronOS Executable (a `.bin` file) into `tools/firmware/ironos/out/`, run from the main project directory:
 
 ```sh
 cd tools
 chmod +x ./scripts/*.sh # only have to do once
 ./scripts/build_ironos_pinecilv2.sh
 ```
-Re-running the build script will overwrite existing `Pinecilv2_EN.bin` in the `tools/out/ironos` directory.
+Re-running the build script will overwrite existing `Pinecilv2_EN.bin` in the `tools/firmware/ironos/out/` directory.
 
 #### c) Confirm you have a `.bin` in:
 ```sh
-ls out/ironos/
+ls firmware/ironos/out
 # expect Pinecilv2_EN.bin (ensure the filename is Pinecilv2_EN.bin)
 ```
 #### d) Test your changes locally (flash your IronOS build)
 Put the Pinecil into [Flash Mode](#2-flash-mode), then flash your local IronOS build:
 
 ```sh
-./scripts/flash_pinecilv2.sh out/ironos/Pinecilv2_EN.bin
+./scripts/flash_pinecilv2.sh firmware/ironos/out/Pinecilv2_EN.bin
 ```
 <b>Important Note:</b>
 
@@ -199,11 +199,18 @@ Repeat edit → build → flash until satisfied. Continue to step 5 when ready A
 
 <b>Leave the Pinecil in a working state when you're done with testing (e.g. flash the default firmware to revert back to initial state)</b>
 
+ To do a clean build:
+```sh
+# from tools/
+rm -rf firmware/ironos/out bin/Pinecilv2_EN.bin
+./scripts/build_ironos_pinecilv2.sh
+```
+
 #### e) Update current IronOS executable
 
 When you're ready, copy your tested `Pinecilv2_EN.bin` into `tools/firmware/ironos/current` (replace the current one that's there), still from `/tools`:
 ```sh
-cp out/ironos/Pinecilv2_EN.bin firmware/ironos/current
+cp firmware/ironos/out/Pinecilv2_EN.bin firmware/ironos/current
 ```
 
 ### 5. Commit and push your IronOS changes
@@ -214,7 +221,7 @@ git commit -m "Modify IronOS: <description>"
 git push -u origin <your-feature-branch>
 ```
 
-Generated directories (`tools/bin/`, `tools/out/`) should not be committed to Git (already included in .gitignore)
+Generated directories (`tools/bin/`, `tools/firmware/ironos/out/`) should not be committed to Git (already included in .gitignore)
 
 ### 6. Update the main repo to point to this new commit
 
