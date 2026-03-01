@@ -24,6 +24,7 @@
 /* USER CODE BEGIN Includes */
 #include <string.h>
 #include <stdio.h>
+#include "uart.h"
 
 /* USER CODE END Includes */
 
@@ -43,7 +44,7 @@
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
-UART_HandleTypeDef huart1;
+UART_HandleTypeDef huart2;
 
 /* Definitions for Task1 */
 osThreadId_t Task1Handle;
@@ -71,12 +72,11 @@ const osMutexAttr_t uartMutex_attributes = {
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
-static void MX_USART1_UART_Init(void);
+static void MX_USART2_UART_Init(void);
 void StartTask1(void *argument);
 void StartTask2(void *argument);
 
 /* USER CODE BEGIN PFP */
-#define PUTCHAR_PROTOTYPE int __io_putchar(int ch)
 
 /* USER CODE END PFP */
 
@@ -114,9 +114,9 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
-  MX_USART1_UART_Init();
+  MX_USART2_UART_Init();
   /* USER CODE BEGIN 2 */
-
+  uart_init(&huart2);
   /* USER CODE END 2 */
 
   /* Init scheduler */
@@ -214,35 +214,35 @@ void SystemClock_Config(void)
 }
 
 /**
-  * @brief USART1 Initialization Function
+  * @brief USART2 Initialization Function
   * @param None
   * @retval None
   */
-static void MX_USART1_UART_Init(void)
+static void MX_USART2_UART_Init(void)
 {
 
-  /* USER CODE BEGIN USART1_Init 0 */
+  /* USER CODE BEGIN USART2_Init 0 */
 
-  /* USER CODE END USART1_Init 0 */
+  /* USER CODE END USART2_Init 0 */
 
-  /* USER CODE BEGIN USART1_Init 1 */
+  /* USER CODE BEGIN USART2_Init 1 */
 
-  /* USER CODE END USART1_Init 1 */
-  huart1.Instance = USART1;
-  huart1.Init.BaudRate = 115200;
-  huart1.Init.WordLength = UART_WORDLENGTH_8B;
-  huart1.Init.StopBits = UART_STOPBITS_1;
-  huart1.Init.Parity = UART_PARITY_NONE;
-  huart1.Init.Mode = UART_MODE_TX_RX;
-  huart1.Init.HwFlowCtl = UART_HWCONTROL_NONE;
-  huart1.Init.OverSampling = UART_OVERSAMPLING_16;
-  if (HAL_UART_Init(&huart1) != HAL_OK)
+  /* USER CODE END USART2_Init 1 */
+  huart2.Instance = USART2;
+  huart2.Init.BaudRate = 115200;
+  huart2.Init.WordLength = UART_WORDLENGTH_8B;
+  huart2.Init.StopBits = UART_STOPBITS_1;
+  huart2.Init.Parity = UART_PARITY_NONE;
+  huart2.Init.Mode = UART_MODE_TX_RX;
+  huart2.Init.HwFlowCtl = UART_HWCONTROL_NONE;
+  huart2.Init.OverSampling = UART_OVERSAMPLING_16;
+  if (HAL_UART_Init(&huart2) != HAL_OK)
   {
     Error_Handler();
   }
-  /* USER CODE BEGIN USART1_Init 2 */
+  /* USER CODE BEGIN USART2_Init 2 */
 
-  /* USER CODE END USART1_Init 2 */
+  /* USER CODE END USART2_Init 2 */
 
 }
 
@@ -266,19 +266,6 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
-/**
-  * @brief  Retargets the C library printf function to the USART.
-  *   None
-  * @retval None
-  */
-PUTCHAR_PROTOTYPE
-{
-  /* Place your implementation of fputc here */
-  /* e.g. write a character to the USART1 and Loop until the end of transmission */
-  HAL_UART_Transmit(&huart1, (uint8_t *)&ch, 1, 0xFFFF);
-
-  return ch;
-}
 
 
 /* USER CODE END 4 */
@@ -293,14 +280,14 @@ PUTCHAR_PROTOTYPE
 void StartTask1(void *argument)
 {
   /* USER CODE BEGIN 5 */
-  uint8_t Task1Payload[] = "Task 1\n"; //Data to send
+  uint8_t Task1Payload[] = "Task 1\n\r"; //Data to send
 
   /* Infinite loop */
   for(;;)
   {
     osMutexAcquire(uartMutexHandle, osWaitForever);
-    printf("Task 1 is running\n");
-    HAL_UART_Transmit(&huart1, Task1Payload, strlen((char*)Task1Payload), HAL_MAX_DELAY);
+    printf("Task 1 is running\n\r");
+    HAL_UART_Transmit(&huart2, Task1Payload, strlen((char*)Task1Payload), HAL_MAX_DELAY);
     osMutexRelease(uartMutexHandle);
     osDelay(1000);
 
@@ -318,13 +305,13 @@ void StartTask1(void *argument)
 void StartTask2(void *argument)
 {
   /* USER CODE BEGIN StartTask2 */
-  uint8_t Task2Payload[] = "Task 2\n";
+  uint8_t Task2Payload[] = "Task 2\n\r";
   /* Infinite loop */
   for(;;)
   {
     osMutexAcquire(uartMutexHandle, osWaitForever);
-    printf("Task 2 is running\n");
-    HAL_UART_Transmit(&huart1, Task2Payload, strlen((char*)Task2Payload), HAL_MAX_DELAY);
+    printf("Task 2 is running\n\r");
+    HAL_UART_Transmit(&huart2, Task2Payload, strlen((char*)Task2Payload), HAL_MAX_DELAY);
     osMutexRelease(uartMutexHandle);
     osDelay(1000);
   }
