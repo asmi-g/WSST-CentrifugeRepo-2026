@@ -38,7 +38,11 @@ Navigate to ``app/init`` and make a copy of the file called .bashrc-template. Na
 Paste the copied path from above in the environment variable in .bashrc, labelled ``ARM_TOOLCHAIN``. Check that the location of the CC (gnu gcc compiler) and CXX (gnu g++ compiler) also exists.
 
 ## Initialize
+<<<<<<< HEAD
 Run the environment variable initialization:
+=======
+Run the environment variable initialization. BEFORE YOU DO, check the paths in the bash script to see if they match where you installed your Arm GNU Toolchain components. IF NOT, change them to match, and add your own script to /app/init for your own environment. DO NOT modify the existing .bashrc. Call it something like .bashrc-asmi, and replace your own name:
+>>>>>>> d4b283e (Stage 2 issue 5 ironos pinecil build integration w repo (#29) (#30))
 ````sh
 cd app/init
 source .bashrc
