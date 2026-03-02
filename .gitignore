@@ -1,1 +1,8 @@
 app/build/*
+.bashrc-mac
+
+app/boards/F401RE/build/*
+app/boards/F411RE/build/*
+
+tools/bin/
+tools/firmware/ironos/out/

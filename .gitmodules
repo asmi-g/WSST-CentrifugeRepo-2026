@@ -1,0 +1,6 @@
+[submodule "tools/blisp"]
+	path = tools/blisp
+	url = https://github.com/Waterloo-Space-Soldering-Team/blisp.git
+[submodule "IronOS"]
+	path = tools/IronOS
+	url = https://github.com/Waterloo-Space-Soldering-Team/IronOS.git
