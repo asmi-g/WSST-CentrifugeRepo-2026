@@ -3,7 +3,7 @@
 This project integrates **IronOS** (firmware) and **blisp** (flashing tool) to build and flash firmware onto the Pinecil V2 (BL70x).
 
 The workflow is:
-1. [One-Time Setup (New Machine, build blisp)](#one-time-setup-new-machine)
+1. [Build Blisp Executable (if applicable)](#0-build-blisp-executable-if-applicable)
 2. Making Changes to IronOS: follow [IronOS Development Workflow](#ironos-development-workflow)
 3. Testing on Pinecil: [Flashing IronOS Firmware](#flashing-current-ironos-firmware) 
 
@@ -49,8 +49,8 @@ Generated directories (`tools/bin/`, `tools/firmware/ironos/out/`) should not be
 ## Flashing Current IronOS Firmware
 To flash the current IronOS executable,`tools/firmware/ironos/current/Pinecilv2_EN.bin`:
 
-### 0. One-Time Setup (if applicable)
-If not already done so, go through the [One-Time Setup](#one-time-setup-new-machine) section to setup and build blisp.
+### 0. Build Blisp Executable (if applicable)
+If not already done so, go through the [Build Blisp Executable (if applicable)](#0-build-blisp-executable-if-applicable) section to setup and build blisp.
 
 ### 1. Pull Most Recent IronOS Changes:
 
