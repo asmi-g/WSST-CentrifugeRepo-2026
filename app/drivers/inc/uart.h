@@ -16,6 +16,10 @@ extern uint8_t rx_buffer[100];
 extern volatile uint8_t rx_indx;
 extern volatile uint8_t transfer_cplt;
 
+extern uint8_t rx_buffer[100];
+extern volatile uint8_t rx_indx;
+extern volatile uint8_t transfer_cplt;
+
 void uart_init(UART_HandleTypeDef *huart);
 
 void uart_tx(const char *str);
