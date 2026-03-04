@@ -328,12 +328,23 @@ static void MX_USART2_UART_Init(void)
   */
 static void MX_GPIO_Init(void)
 {
+  GPIO_InitTypeDef GPIO_InitStruct = {0};
   /* USER CODE BEGIN MX_GPIO_Init_1 */
 
   /* USER CODE END MX_GPIO_Init_1 */
 
   /* GPIO Ports Clock Enable */
   __HAL_RCC_GPIOA_CLK_ENABLE();
+
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, GPIO_PIN_RESET);
+
+  /*Configure GPIO pin : PA5 */
+  GPIO_InitStruct.Pin = GPIO_PIN_5;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
   /* USER CODE BEGIN MX_GPIO_Init_2 */
 
@@ -381,15 +392,25 @@ void StartUartTxTask(void *argument)
 void StartMotorTask(void *argument)
 {
   /* USER CODE BEGIN StartTask2 */
-  uint8_t Task2ReadPayload[100]; // Allocate buffer for received data
+  
   /* Infinite loop */
   for(;;)
   {
-    osMutexAcquire(uartMutexHandle, osWaitForever);
-    printf("Task 2 is running\n\r");
-    HAL_UART_Receive_IT(&huart2, Task2ReadPayload, strlen((char*)Task2ReadPayload));
-    osMutexRelease(uartMutexHandle);
-    osDelay(1000);
+    if (transfer_cplt)
+    {
+      transfer_cplt = 0;
+
+      if (!strcmp((char*)rx_buffer, "ON"))
+      {
+        HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, GPIO_PIN_SET);
+      }
+      else if (!strcmp((char*)rx_buffer, "OFF"))
+      {
+        HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, GPIO_PIN_RESET);
+      }
+    }
+
+    osDelay(10);
   }
   /* USER CODE END StartMotorTask */
 }
