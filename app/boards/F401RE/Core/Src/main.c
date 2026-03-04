@@ -328,12 +328,23 @@ static void MX_USART2_UART_Init(void)
   */
 static void MX_GPIO_Init(void)
 {
+  GPIO_InitTypeDef GPIO_InitStruct = {0};
   /* USER CODE BEGIN MX_GPIO_Init_1 */
 
   /* USER CODE END MX_GPIO_Init_1 */
 
   /* GPIO Ports Clock Enable */
   __HAL_RCC_GPIOA_CLK_ENABLE();
+
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, GPIO_PIN_RESET);
+
+  /*Configure GPIO pin : PA5 */
+  GPIO_InitStruct.Pin = GPIO_PIN_5;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
   /* USER CODE BEGIN MX_GPIO_Init_2 */
 
@@ -355,23 +366,11 @@ static void MX_GPIO_Init(void)
 void StartUartTxTask(void *argument)
 {
   /* USER CODE BEGIN 5 */
-<<<<<<< HEAD
-
-=======
-  uint8_t Task1WritePayload[] = "Task 1\n\r"; //Data to send
->>>>>>> 9bd5bf5 (stage-2-issue-8-gui-development-microcontroller-prototyping: Started UART RX in RTOS Task 2)
 
   /* Infinite loop */
   for(;;)
   {
-<<<<<<< HEAD
     //uart_tx("Task 1 is running\n\r");
-=======
-    osMutexAcquire(uartMutexHandle, osWaitForever);
-    printf("Task 1 is running\n\r");
-    HAL_UART_Transmit(&huart2, Task1WritePayload, strlen((char*)Task1WritePayload), HAL_MAX_DELAY);
-    osMutexRelease(uartMutexHandle);
->>>>>>> 9bd5bf5 (stage-2-issue-8-gui-development-microcontroller-prototyping: Started UART RX in RTOS Task 2)
     osDelay(1000);
 
   }
