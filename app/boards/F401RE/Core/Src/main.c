@@ -164,6 +164,9 @@ int main(void)
   /* creation of MotorTask */
   MotorTaskHandle = osThreadNew(StartMotorTask, NULL, &MotorTask_attributes);
 
+  /* creation of MotorTask1 */
+  MotorTask1Handle = osThreadNew(StartTask03, NULL, &MotorTask1_attributes);
+
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
   /* USER CODE END RTOS_THREADS */
@@ -335,6 +338,7 @@ static void MX_GPIO_Init(void)
 
   /* GPIO Ports Clock Enable */
   __HAL_RCC_GPIOA_CLK_ENABLE();
+  __HAL_RCC_GPIOB_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, GPIO_PIN_RESET);
@@ -430,6 +434,34 @@ void StartMotorTask(void *argument)
   }
   /* USER CODE END StartMotorTask */
 }
+
+/* USER CODE BEGIN Header_StartTask03 */
+/**
+* @brief Function implementing the MotorTask1 thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_StartTask03 */
+void StartTask03(void *argument)
+{
+  /* USER CODE BEGIN StartTask03 */
+  /* Infinite loop */
+  pwm_t pwm;
+  pwm_init(&pwm, &htim4, TIM_CHANNEL_1);
+  pwm_start(&pwm);
+
+  for(;;)
+  {
+      pwm_set_u8(&pwm, 255);  // full speed
+      osDelay(2000);
+
+      pwm_set_u8(&pwm, 0);    // stop
+      osDelay(2000);
+  }
+
+  /* USER CODE END StartTask03 */
+}
+  /* USER CODE END StartTask03 */
 
 /**
   * @brief  Period elapsed callback in non blocking mode
