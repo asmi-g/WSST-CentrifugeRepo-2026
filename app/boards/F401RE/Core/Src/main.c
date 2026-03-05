@@ -86,7 +86,7 @@ static void MX_USART2_UART_Init(void);
 static void MX_TIM4_Init(void);
 void StartTask1(void *argument);
 void StartTask2(void *argument);
-void StartTask03(void *argument);
+void StartMotorTask1(void *argument);
 
 /* USER CODE BEGIN PFP */
 
@@ -162,7 +162,7 @@ int main(void)
   Task2Handle = osThreadNew(StartTask2, NULL, &Task2_attributes);
 
   /* creation of MotorTask1 */
-  MotorTask1Handle = osThreadNew(StartTask03, NULL, &MotorTask1_attributes);
+  MotorTask1Handle = osThreadNew(StartMotorTask1, NULL, &MotorTask1_attributes);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
@@ -394,33 +394,31 @@ void StartTask2(void *argument)
   /* USER CODE END StartTask2 */
 }
 
-/* USER CODE BEGIN Header_StartTask03 */
+/* USER CODE BEGIN Header_StartMotorTask1 */
 /**
 * @brief Function implementing the MotorTask1 thread.
 * @param argument: Not used
 * @retval None
 */
-/* USER CODE END Header_StartTask03 */
-void StartTask03(void *argument)
+/* USER CODE END Header_StartMotorTask1 */
+void StartMotorTask1(void *argument)
 {
-  /* USER CODE BEGIN StartTask03 */
-  /* Infinite loop */
+  /* USER CODE BEGIN StartMotorTask1 */
   pwm_t pwm;
   pwm_init(&pwm, &htim4, TIM_CHANNEL_1);
   pwm_start(&pwm);
 
+  /* Infinite loop */
   for(;;)
   {
-      pwm_set_u8(&pwm, 255);  // full speed
-      osDelay(2000);
+    pwm_set(&pwm, 255);   // full duty cycle
+    osDelay(2000);
 
-      pwm_set_u8(&pwm, 0);    // stop
-      osDelay(2000);
+    pwm_set(&pwm, 0);     // zero duty cycle
+    osDelay(2000);
   }
-
-  /* USER CODE END StartTask03 */
+  /* USER CODE END StartMotorTask1 */
 }
-  /* USER CODE END StartTask03 */
 
 /**
   * @brief  Period elapsed callback in non blocking mode
