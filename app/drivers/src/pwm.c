@@ -24,7 +24,7 @@ HAL_StatusTypeDef pwm_start(pwm_t *p)
   return HAL_TIM_PWM_Start(p->htim, p->channel);
 }
 
-HAL_StatusTypeDef pwm_set_u8(pwm_t *p, uint8_t duty_u8)
+HAL_StatusTypeDef pwm_set(pwm_t *p, uint8_t duty_u8)
 {
   if (!p || !p->htim) return HAL_ERROR;
 
