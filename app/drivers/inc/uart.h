@@ -7,6 +7,10 @@ extern uint8_t rx_buffer[100];
 extern volatile uint8_t rx_indx;
 extern volatile uint8_t transfer_cplt;
 
+extern typedef struct {
+    char commmand[16];
+} uart_message_t;
+
 void uart_init(UART_HandleTypeDef *huart);
 
 void uart_start_rx_it(void);
