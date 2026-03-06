@@ -20,7 +20,10 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
   {
     if (rx_byte != '\r')
     {
-      rx_buffer[rx_indx++] = rx_byte;
+      if (rx_indx < sizeof(rx_buffer) - 1)
+      {
+          rx_buffer[rx_indx++] = rx_byte;
+      }
     }
     else
     {
@@ -34,39 +37,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
     HAL_UART_Receive_IT(uart_handle, &rx_byte, 1);
   }
 
-  /*if (huart == uart_handle)
-  {
-    uint8_t i;
-    if(uart_handle->Instance == USART2){
-      if(rx_indx == 0){
-        for(i=0; i<100; i++){
-          rx_buffer[i] = 0;
-          HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, GPIO_PIN_RESET);
-        }
-      }
-
-      if(rx_byte[0] != 13){
-        rx_buffer[rx_indx++] = rx_byte[0];
-      }
-      else{
-        rx_indx = 0;
-        transfer_cplt = 1;
-        HAL_UART_Transmit(uart_handle, "\n\r", 2, HAL_MAX_DELAY);
-        if(!strcmp(rx_buffer, "ON"))
-        {
-          HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, GPIO_PIN_SET);
-        }
-      }
-
-      // Restart interrupt reception
-      HAL_UART_Receive_IT(uart_handle, &rx_byte, 1);
-
-      // Echo received byte
-      HAL_UART_Transmit(uart_handle, &rx_byte, 1, HAL_MAX_DELAY);
-    }
-  }*/
 }
-
 
 /**
   * @brief  Retargets the C library printf function to the USART.
