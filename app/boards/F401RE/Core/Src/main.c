@@ -50,19 +50,12 @@ TIM_HandleTypeDef htim2;
 
 UART_HandleTypeDef huart2;
 
-/* Definitions for Task1 */
-osThreadId_t Task1Handle;
-const osThreadAttr_t Task1_attributes = {
-  .name = "Task1",
+/* Definitions for UartTxTask */
+osThreadId_t UartTxTaskHandle;
+const osThreadAttr_t UartTxTask_attributes = {
+  .name = "UartTxTask",
   .stack_size = 512 * 4,
   .priority = (osPriority_t) osPriorityNormal,
-};
-/* Definitions for Task2 */
-osThreadId_t Task2Handle;
-const osThreadAttr_t Task2_attributes = {
-  .name = "Task2",
-  .stack_size = 512 * 4,
-  .priority = (osPriority_t) osPriorityLow,
 };
 /* Definitions for MotorTask */
 osThreadId_t MotorTaskHandle;
@@ -90,8 +83,7 @@ void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_USART2_UART_Init(void);
 static void MX_TIM2_Init(void);
-void StartTask1(void *argument);
-void StartTask2(void *argument);
+void StartUartTxTask(void *argument);
 void StartMotorTask(void *argument);
 
 /* USER CODE BEGIN PFP */
@@ -117,6 +109,7 @@ int main(void)
   /* MCU Configuration--------------------------------------------------------*/
 
   /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
+
   HAL_Init();
 
   /* USER CODE BEGIN Init */
@@ -165,11 +158,8 @@ int main(void)
   /* USER CODE END RTOS_QUEUES */
 
   /* Create the thread(s) */
-  /* creation of Task1 */
-  Task1Handle = osThreadNew(StartTask1, NULL, &Task1_attributes);
-
-  /* creation of Task2 */
-  Task2Handle = osThreadNew(StartTask2, NULL, &Task2_attributes);
+  /* creation of UartTxTask */
+  UartTxTaskHandle = osThreadNew(StartUartTxTask, NULL, &UartTxTask_attributes);
 
   /* creation of MotorTask */
   MotorTaskHandle = osThreadNew(StartMotorTask, NULL, &MotorTask_attributes);
@@ -355,62 +345,26 @@ static void MX_GPIO_Init(void)
 
 /* USER CODE END 4 */
 
-/* USER CODE BEGIN Header_StartTask1 */
+/* USER CODE BEGIN Header_StartUartTxTask */
 /**
-  * @brief  Function implementing the Task1 thread.
+  * @brief  Function implementing the UartTxTask thread.
   * @param  argument: Not used
   * @retval None
   */
-/* USER CODE END Header_StartTask1 */
-void StartTask1(void *argument)
+/* USER CODE END Header_StartUartTxTask */
+void StartUartTxTask(void *argument)
 {
   /* USER CODE BEGIN 5 */
-  uint8_t Task1WritePayload[] = "Task 1\n\r"; //Data to send
+
 
   /* Infinite loop */
   for(;;)
   {
-    osMutexAcquire(uartMutexHandle, osWaitForever);
-    printf("Task 1 is running\n\r");
-    HAL_UART_Transmit(&huart2, Task1WritePayload, strlen((char*)Task1WritePayload), HAL_MAX_DELAY);
-    osMutexRelease(uartMutexHandle);
+    //uart_tx("Task 1 is running\n\r");
     osDelay(1000);
 
   }
   /* USER CODE END 5 */
-}
-
-/* USER CODE BEGIN Header_StartTask2 */
-/**
-* @brief Function implementing the Task2 thread.
-* @param argument: Not used
-* @retval None
-*/
-/* USER CODE END Header_StartTask2 */
-void StartTask2(void *argument)
-{
-  /* USER CODE BEGIN StartTask2 */
-  
-  /* Infinite loop */
-  for(;;)
-  {
-    /*if (transfer_cplt)
-    {
-      transfer_cplt = 0;
-
-      if (!strcmp((char*)rx_buffer, "ON"))
-      {
-        HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, GPIO_PIN_SET);
-      }
-      else if (!strcmp((char*)rx_buffer, "OFF"))
-      {
-        HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, GPIO_PIN_RESET);
-      }
-    }*/
-
-    osDelay(10);
-  }
-  /* USER CODE END StartTask2 */
 }
 
 /* USER CODE BEGIN Header_StartMotorTask */
@@ -425,6 +379,7 @@ void StartMotorTask(void *argument)
   /* USER CODE BEGIN StartMotorTask */
   // Integrates PWM with UART input
   pwm_t motor1;
+  uart_message_t msg;
 
   pwm_init(&motor1, &htim2, TIM_CHANNEL_1);
   pwm_start(&motor1);
@@ -432,22 +387,32 @@ void StartMotorTask(void *argument)
   /* Infinite loop */
   for(;;)
   {
-    if (transfer_cplt)
+    if(osMessageQueueGet(uartRxMessageQueueHandle, &msg, NULL, 10) == osOK)
     {
-      transfer_cplt = 0;
-      printf("CMD: %s\r\n", rx_buffer);
-      if (!strcmp((char*)rx_buffer, "ON"))
+      if(strcmp(msg.command, "ON") == 0)
       {
         pwm_set(&motor1, 255);
       }
-      else if (!strcmp((char*)rx_buffer, "OFF"))
+      else if(strcmp(msg.command, "OFF") == 0)
       {
         pwm_set(&motor1, 0);
       }
       else
       {
-        uint8_t duty = (uint8_t)atoi((char*)rx_buffer);
-        pwm_set(&motor1, duty);
+        int duty = atoi(msg.command);
+        if(duty < 0) duty = 0;
+        if(duty > 255) duty = 255;
+        // Only set PWM if string is a valid number
+        printf("Received command: '%s', parsed duty: %d\n", msg.command, duty);
+        if(duty != 0 || strcmp(msg.command, "0") == 0)
+        {
+          pwm_set(&motor1, (uint8_t)duty);
+        }
+        else
+        {
+          // invalid string, do nothing or print warning
+          printf("Unknown command: '%s'\n", msg.command);
+        }
       }
     }
     osDelay(100);
