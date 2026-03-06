@@ -3,6 +3,9 @@
 
 static UART_HandleTypeDef *uart_handle;
 static uint8_t rx_byte;
+uint8_t rx_buffer[100];           // actual memory allocated
+volatile uint8_t rx_indx = 0;
+volatile uint8_t transfer_cplt = 0;
 
 void uart_init(UART_HandleTypeDef *huart)
 {
@@ -55,6 +58,7 @@ void uart_tx(const char *str){
   HAL_UART_Transmit(uart_handle, (uint8_t*)str, strlen(str), HAL_MAX_DELAY);
   osMutexRelease(uartMutexHandle);
 }
+
 
 /**
   * @brief  Retargets the C library printf function to the USART.
