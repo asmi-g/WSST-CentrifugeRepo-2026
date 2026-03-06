@@ -3,9 +3,6 @@
 
 static UART_HandleTypeDef *uart_handle;
 static uint8_t rx_byte;
-uint8_t rx_buffer[100];           // actual memory allocated
-volatile uint8_t rx_indx = 0;
-volatile uint8_t transfer_cplt = 0;
 
 void uart_init(UART_HandleTypeDef *huart)
 {
