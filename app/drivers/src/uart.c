@@ -59,7 +59,6 @@ void uart_tx(const char *str){
   osMutexRelease(uartMutexHandle);
 }
 
-
 /**
   * @brief  Retargets the C library printf function to the USART.
   *   None

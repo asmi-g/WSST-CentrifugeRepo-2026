@@ -69,6 +69,11 @@ osMessageQueueId_t uartRxMessageQueueHandle;
 const osMessageQueueAttr_t uartRxMessageQueue_attributes = {
   .name = "uartRxMessageQueue"
 };
+/* Definitions for uartRxMessageQueue */
+osMessageQueueId_t uartRxMessageQueueHandle;
+const osMessageQueueAttr_t uartRxMessageQueue_attributes = {
+  .name = "uartRxMessageQueue"
+};
 /* Definitions for uartMutex */
 osMutexId_t uartMutexHandle;
 const osMutexAttr_t uartMutex_attributes = {
@@ -164,8 +169,8 @@ int main(void)
   /* creation of MotorTask */
   MotorTaskHandle = osThreadNew(StartMotorTask, NULL, &MotorTask_attributes);
 
-  /* creation of MotorTask1 */
-  MotorTask1Handle = osThreadNew(StartMotorTask1, NULL, &MotorTask1_attributes);
+  /* creation of MotorTask */
+  MotorTaskHandle = osThreadNew(StartMotorTask, NULL, &MotorTask_attributes);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
@@ -331,24 +336,12 @@ static void MX_USART2_UART_Init(void)
   */
 static void MX_GPIO_Init(void)
 {
-  GPIO_InitTypeDef GPIO_InitStruct = {0};
   /* USER CODE BEGIN MX_GPIO_Init_1 */
 
   /* USER CODE END MX_GPIO_Init_1 */
 
   /* GPIO Ports Clock Enable */
   __HAL_RCC_GPIOA_CLK_ENABLE();
-  __HAL_RCC_GPIOB_CLK_ENABLE();
-
-  /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, GPIO_PIN_RESET);
-
-  /*Configure GPIO pin : PA5 */
-  GPIO_InitStruct.Pin = GPIO_PIN_5;
-  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
   /* USER CODE BEGIN MX_GPIO_Init_2 */
 
@@ -435,30 +428,46 @@ void StartMotorTask(void *argument)
   /* USER CODE END StartMotorTask */
 }
 
-/* USER CODE BEGIN Header_StartMotorTask1 */
+/* USER CODE BEGIN Header_StartMotorTask */
 /**
-* @brief Function implementing the MotorTask1 thread.
+* @brief Function implementing the MotorTask thread.
 * @param argument: Not used
 * @retval None
 */
-/* USER CODE END Header_StartMotorTask1 */
-void StartMotorTask1(void *argument)
+/* USER CODE END Header_StartMotorTask */
+void StartMotorTask(void *argument)
 {
-  /* USER CODE BEGIN StartMotorTask1 */
-  pwm_t pwm;
-  pwm_init(&pwm, &htim4, TIM_CHANNEL_1);
-  pwm_start(&pwm);
+  /* USER CODE BEGIN StartMotorTask */
+  // Integrates PWM with UART input
+  pwm_t motor1;
+
+  pwm_init(&motor1, &htim2, TIM_CHANNEL_1);
+  pwm_start(&motor1);
 
   /* Infinite loop */
   for(;;)
   {
-    pwm_set(&pwm, 255);   // full duty cycle
-    osDelay(2000);
-
-    pwm_set(&pwm, 0);     // zero duty cycle
-    osDelay(2000);
+    if (transfer_cplt)
+    {
+      transfer_cplt = 0;
+      printf("CMD: %s\r\n", rx_buffer);
+      if (!strcmp((char*)rx_buffer, "ON"))
+      {
+        pwm_set(&motor1, 255);
+      }
+      else if (!strcmp((char*)rx_buffer, "OFF"))
+      {
+        pwm_set(&motor1, 0);
+      }
+      else
+      {
+        uint8_t duty = (uint8_t)atoi((char*)rx_buffer);
+        pwm_set(&motor1, duty);
+      }
+    }
+    osDelay(100);
   }
-  /* USER CODE END StartMotorTask1 */
+  /* USER CODE END StartMotorTask */
 }
 
 /**
