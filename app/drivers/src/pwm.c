@@ -24,12 +24,12 @@ HAL_StatusTypeDef pwm_start(pwm_t *p)
   return HAL_TIM_PWM_Start(p->htim, p->channel);
 }
 
-HAL_StatusTypeDef pwm_set(pwm_t *p, uint8_t duty_u8)
+HAL_StatusTypeDef pwm_set(pwm_t *p, uint8_t duty)
 {
   if (!p || !p->htim) return HAL_ERROR;
 
   uint32_t arr = p->arr;
-  uint32_t ccr = (uint32_t)(((uint64_t)duty_u8 * (uint64_t)(arr + 1)) / 255ULL);
+  uint32_t ccr = (uint32_t)(((uint64_t)duty * (uint64_t)(arr + 1)) / 255ULL);
   ccr = clamp_u32(ccr, 0, arr);
 
   __HAL_TIM_SET_COMPARE(p->htim, p->channel, ccr);
