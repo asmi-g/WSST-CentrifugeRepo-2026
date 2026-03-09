@@ -210,7 +210,7 @@ rm -rf firmware/ironos/out bin/Pinecilv2_EN.bin
 
 When you're ready, copy your tested `Pinecilv2_EN.bin` into `tools/firmware/ironos/current` (replace the current one that's there), still from `/tools`:
 ```sh
-cp firmware/ironos/out/Pinecilv2_EN.bin firmware/ironos/current
+cp firmware/ironos/out/Pinecilv2_EN.bin firmware/ironos/tracked
 ```
 
 ### 5. Commit and push your IronOS changes
