@@ -39,10 +39,14 @@ Paste the copied path from above in the environment variable in .bashrc, labelle
 
 ## Initialize
 <<<<<<< HEAD
+<<<<<<< HEAD
 Run the environment variable initialization:
 =======
 Run the environment variable initialization. BEFORE YOU DO, check the paths in the bash script to see if they match where you installed your Arm GNU Toolchain components. IF NOT, change them to match, and add your own script to /app/init for your own environment. DO NOT modify the existing .bashrc. Call it something like .bashrc-asmi, and replace your own name:
 >>>>>>> d4b283e (Stage 2 issue 5 ironos pinecil build integration w repo (#29) (#30))
+=======
+Run the environment variable initialization:
+>>>>>>> 717301e (stage-2-issue-8-gui-development-microcontroller-prototyping: documentation fixes for build issues)
 ````sh
 cd app/init
 source .bashrc
