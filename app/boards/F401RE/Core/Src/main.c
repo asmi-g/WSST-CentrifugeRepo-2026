@@ -45,6 +45,8 @@
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
+TIM_HandleTypeDef htim1;
+TIM_HandleTypeDef htim3;
 TIM_HandleTypeDef htim4;
 
 UART_HandleTypeDef huart2;
@@ -63,10 +65,17 @@ const osThreadAttr_t Task2_attributes = {
   .stack_size = 512 * 4,
   .priority = (osPriority_t) osPriorityLow,
 };
-/* Definitions for MotorTask1 */
-osThreadId_t MotorTask1Handle;
-const osThreadAttr_t MotorTask1_attributes = {
-  .name = "MotorTask1",
+/* Definitions for SameTimer */
+osThreadId_t SameTimerHandle;
+const osThreadAttr_t SameTimer_attributes = {
+  .name = "SameTimer",
+  .stack_size = 512 * 4,
+  .priority = (osPriority_t) osPriorityLow,
+};
+/* Definitions for DiffTimer */
+osThreadId_t DiffTimerHandle;
+const osThreadAttr_t DiffTimer_attributes = {
+  .name = "DiffTimer",
   .stack_size = 512 * 4,
   .priority = (osPriority_t) osPriorityLow,
 };
@@ -84,9 +93,12 @@ void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_USART2_UART_Init(void);
 static void MX_TIM4_Init(void);
+static void MX_TIM1_Init(void);
+static void MX_TIM3_Init(void);
 void StartTask1(void *argument);
 void StartTask2(void *argument);
-void StartMotorTask1(void *argument);
+void StartSameTimer(void *argument);
+void StartDiffTimer(void *argument);
 
 /* USER CODE BEGIN PFP */
 
@@ -128,6 +140,8 @@ int main(void)
   MX_GPIO_Init();
   MX_USART2_UART_Init();
   MX_TIM4_Init();
+  MX_TIM1_Init();
+  MX_TIM3_Init();
   /* USER CODE BEGIN 2 */
   uart_init(&huart2);
   /* USER CODE END 2 */
@@ -161,8 +175,11 @@ int main(void)
   /* creation of Task2 */
   Task2Handle = osThreadNew(StartTask2, NULL, &Task2_attributes);
 
-  /* creation of MotorTask1 */
-  MotorTask1Handle = osThreadNew(StartMotorTask1, NULL, &MotorTask1_attributes);
+  /* creation of SameTimer */
+  SameTimerHandle = osThreadNew(StartSameTimer, NULL, &SameTimer_attributes);
+
+  /* creation of DiffTimer */
+  DiffTimerHandle = osThreadNew(StartDiffTimer, NULL, &DiffTimer_attributes);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
@@ -230,6 +247,139 @@ void SystemClock_Config(void)
 }
 
 /**
+  * @brief TIM1 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_TIM1_Init(void)
+{
+
+  /* USER CODE BEGIN TIM1_Init 0 */
+
+  /* USER CODE END TIM1_Init 0 */
+
+  TIM_ClockConfigTypeDef sClockSourceConfig = {0};
+  TIM_MasterConfigTypeDef sMasterConfig = {0};
+  TIM_OC_InitTypeDef sConfigOC = {0};
+  TIM_BreakDeadTimeConfigTypeDef sBreakDeadTimeConfig = {0};
+
+  /* USER CODE BEGIN TIM1_Init 1 */
+
+  /* USER CODE END TIM1_Init 1 */
+  htim1.Instance = TIM1;
+  htim1.Init.Prescaler = 15;
+  htim1.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim1.Init.Period = 999;
+  htim1.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  htim1.Init.RepetitionCounter = 0;
+  htim1.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+  if (HAL_TIM_Base_Init(&htim1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
+  if (HAL_TIM_ConfigClockSource(&htim1, &sClockSourceConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  if (HAL_TIM_PWM_Init(&htim1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+  if (HAL_TIMEx_MasterConfigSynchronization(&htim1, &sMasterConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sConfigOC.OCMode = TIM_OCMODE_PWM1;
+  sConfigOC.Pulse = 0;
+  sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
+  sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
+  sConfigOC.OCIdleState = TIM_OCIDLESTATE_RESET;
+  sConfigOC.OCNIdleState = TIM_OCNIDLESTATE_RESET;
+  if (HAL_TIM_PWM_ConfigChannel(&htim1, &sConfigOC, TIM_CHANNEL_4) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sBreakDeadTimeConfig.OffStateRunMode = TIM_OSSR_DISABLE;
+  sBreakDeadTimeConfig.OffStateIDLEMode = TIM_OSSI_DISABLE;
+  sBreakDeadTimeConfig.LockLevel = TIM_LOCKLEVEL_OFF;
+  sBreakDeadTimeConfig.DeadTime = 0;
+  sBreakDeadTimeConfig.BreakState = TIM_BREAK_DISABLE;
+  sBreakDeadTimeConfig.BreakPolarity = TIM_BREAKPOLARITY_HIGH;
+  sBreakDeadTimeConfig.AutomaticOutput = TIM_AUTOMATICOUTPUT_DISABLE;
+  if (HAL_TIMEx_ConfigBreakDeadTime(&htim1, &sBreakDeadTimeConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN TIM1_Init 2 */
+
+  /* USER CODE END TIM1_Init 2 */
+  HAL_TIM_MspPostInit(&htim1);
+
+}
+
+/**
+  * @brief TIM3 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_TIM3_Init(void)
+{
+
+  /* USER CODE BEGIN TIM3_Init 0 */
+
+  /* USER CODE END TIM3_Init 0 */
+
+  TIM_ClockConfigTypeDef sClockSourceConfig = {0};
+  TIM_MasterConfigTypeDef sMasterConfig = {0};
+  TIM_OC_InitTypeDef sConfigOC = {0};
+
+  /* USER CODE BEGIN TIM3_Init 1 */
+
+  /* USER CODE END TIM3_Init 1 */
+  htim3.Instance = TIM3;
+  htim3.Init.Prescaler = 15;
+  htim3.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim3.Init.Period = 999;
+  htim3.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  htim3.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+  if (HAL_TIM_Base_Init(&htim3) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
+  if (HAL_TIM_ConfigClockSource(&htim3, &sClockSourceConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  if (HAL_TIM_PWM_Init(&htim3) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+  if (HAL_TIMEx_MasterConfigSynchronization(&htim3, &sMasterConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sConfigOC.OCMode = TIM_OCMODE_PWM1;
+  sConfigOC.Pulse = 0;
+  sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
+  sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
+  if (HAL_TIM_PWM_ConfigChannel(&htim3, &sConfigOC, TIM_CHANNEL_2) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN TIM3_Init 2 */
+
+  /* USER CODE END TIM3_Init 2 */
+  HAL_TIM_MspPostInit(&htim3);
+
+}
+
+/**
   * @brief TIM4 Initialization Function
   * @param None
   * @retval None
@@ -278,6 +428,10 @@ static void MX_TIM4_Init(void)
   sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
   sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
   if (HAL_TIM_PWM_ConfigChannel(&htim4, &sConfigOC, TIM_CHANNEL_1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  if (HAL_TIM_PWM_ConfigChannel(&htim4, &sConfigOC, TIM_CHANNEL_2) != HAL_OK)
   {
     Error_Handler();
   }
@@ -394,30 +548,84 @@ void StartTask2(void *argument)
   /* USER CODE END StartTask2 */
 }
 
-/* USER CODE BEGIN Header_StartMotorTask1 */
+/* USER CODE BEGIN Header_StartSameTimer */
 /**
-* @brief Function implementing the MotorTask1 thread.
+* @brief Function implementing the SameTimer thread.
 * @param argument: Not used
 * @retval None
 */
-/* USER CODE END Header_StartMotorTask1 */
-void StartMotorTask1(void *argument)
+/* USER CODE END Header_StartSameTimer */
+void StartSameTimer(void *argument)
 {
-  /* USER CODE BEGIN StartMotorTask1 */
-  pwm_t pwm;
-  pwm_init(&pwm, &htim4, TIM_CHANNEL_1);
-  pwm_start(&pwm);
+  /* USER CODE BEGIN StartSameTimer */
+
+  pwm_t pwm1;
+  pwm_t pwm2;
+
+  // pwm1 -> TIM4_CH1 on PB6
+  // pwm2 -> TIM4_CH2 on PB7
+  pwm_init(&pwm1, &htim4, TIM_CHANNEL_1);
+  pwm_init(&pwm2, &htim4, TIM_CHANNEL_2);
+
+  // Start both PWM outputs on same timer
+  pwm_start(&pwm1);
+  pwm_start(&pwm2);
 
   /* Infinite loop */
   for(;;)
   {
-    pwm_set(&pwm, 255);   // full duty cycle
-    osDelay(2000);
+    // LED1 bright, LED2 dim
+    pwm_set(&pwm1, 255);
+    pwm_set(&pwm2, 50);
+    osDelay(1000);
 
-    pwm_set(&pwm, 0);     // zero duty cycle
-    osDelay(2000);
+    // Swap brightness
+    pwm_set(&pwm1, 50);
+    pwm_set(&pwm2, 255);
+    osDelay(1000);
   }
-  /* USER CODE END StartMotorTask1 */
+
+  /* USER CODE END StartSameTimer */
+}
+
+/* USER CODE BEGIN Header_StartDiffTimer */
+/**
+* @brief Function implementing the DiffTimer thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_StartDiffTimer */
+void StartDiffTimer(void *argument)
+{
+  /* USER CODE BEGIN StartDiffTimer */
+
+  pwm_t pwm3;
+  pwm_t pwm4;
+
+  // pwm3 -> TIM3_CH2 on PB5
+  // pwm4 -> TIM1_CH4 on PA11
+  pwm_init(&pwm3, &htim3, TIM_CHANNEL_2);
+  pwm_init(&pwm4, &htim1, TIM_CHANNEL_4);
+
+  // Start PWM outputs on different timers
+  pwm_start(&pwm3);
+  pwm_start(&pwm4);
+
+  /* Infinite loop */
+  for(;;)
+  {
+    // LED3 ON, LED4 OFF
+    pwm_set(&pwm3, 255);
+    pwm_set(&pwm4, 0);
+    osDelay(1000);
+
+    // LED3 OFF, LED4 ON
+    pwm_set(&pwm3, 0);
+    pwm_set(&pwm4, 255);
+    osDelay(1000);
+  }
+
+  /* USER CODE END StartDiffTimer */
 }
 
 /**
