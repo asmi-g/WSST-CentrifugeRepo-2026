@@ -1,6 +1,6 @@
 #include "stm32f4xx_hal.h"
 
-int main(void)
+void App_Main(void)
 {
     HAL_Init();
 
