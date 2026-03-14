@@ -1,0 +1,4 @@
+export ARM_TOOLCHAIN=""
+export CC="$ARM_TOOLCHAIN/arm-none-eabi-gcc.exe"
+export CXX="$ARM_TOOLCHAIN/arm-none-eabi-g++.exe"
+export PATH="$ARM_TOOLCHAIN:$PATH"

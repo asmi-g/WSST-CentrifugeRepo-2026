@@ -32,9 +32,13 @@ arm-none-eabi-gcc --version
 cmake --version
 openocd --version
 ```
+## Customize (.bashrc)
+Navigate to ``app/init`` and make a copy of the file called .bashrc-template. Name is .bashrc. Go to where your environment variables under PATH are located (on Windows, enter the search prompt, type in "Edit the system environment variables", navigate to Environment Variables>User Variables>Path, then copy the path to your gnu toolchain binary folder. Example: ``C:\Program Files (x86)\Arm GNU Toolchain arm-none-eabi\14.3 rel1\bin``).
+
+Paste the copied path from above in the environment variable in .bashrc, labelled ``ARM_TOOLCHAIN``. Check that the location of the CC (gnu gcc compiler) and CXX (gnu g++ compiler) also exists.
 
 ## Initialize
-Run the environment variable initialization. BEFORE YOU DO, check the paths in the bash script to see if they match where you installed your Arm GNU Toolchain components. IF NOT, change them to match, and add your own script to /app/init for your own environment. DO NOT modify the existing .bashrc. Call it something like .bashrc-asmi, and replace your own name:
+Run the environment variable initialization:
 ````sh
 cd app/init
 source .bashrc
@@ -44,8 +48,7 @@ source .bashrc
 Run the following command in the /app/ directory, and REMEMBER TO CHANGE THE BOARD PARAMETER TO MATCH WHICH BOARD YOU'RE WORKING WITH:
 ```sh
 cd ..
-cmake -S . -B build -G "Unix Makefiles"   -DCMAKE_TOOLCHAIN_FILE="cmake/toolchain-arm-none-eabi.cmake" -DCMAKE_C_COMPILER=CC   -DCMAKE_CXX_COMPILER=CXX   -DBOARD=F411RE
-
+cmake -S . -B build -G "Unix Makefiles"   -DCMAKE_TOOLCHAIN_FILE="cmake/toolchain-arm-none-eabi.cmake" -DCMAKE_C_COMPILER=CC   -DCMAKE_CXX_COMPILER=CXX   -DBOARD=F401RE
 ```
 
 ## Build
