@@ -27,6 +27,10 @@ Mcu.Pin2=PA5
 Mcu.Pin3=VP_FREERTOS_VS_CMSIS_V2
 Mcu.Pin4=VP_SYS_VS_tim5
 Mcu.PinsNb=5
+Mcu.Pin5=VP_TIM2_VS_ClockSourceINT
+Mcu.PinsNb=6
+>>>>>>> c1f572a4917f276ac47c73235ca9dacf6097a6a1
+>>>>>>> 9a76ce0cd0b57f9f9426631e78e7e78ff5dd6d85
 Mcu.ThirdPartyNb=0
 Mcu.UserConstants=
 Mcu.UserName=STM32F401RETx
@@ -56,6 +60,7 @@ PA3.Mode=Asynchronous
 PA3.Signal=USART2_RX
 PA5.Locked=true
 PA5.Signal=GPIO_Output
+PA5.Signal=S_TIM2_CH1_ETR
 PinOutPanel.RotationAngle=0
 ProjectManager.AskForMigrate=true
 ProjectManager.BackupPrevious=false
@@ -88,7 +93,7 @@ ProjectManager.ToolChainLocation=
 ProjectManager.UAScriptAfterPath=
 ProjectManager.UAScriptBeforePath=
 ProjectManager.UnderRoot=false
-ProjectManager.functionlistsort=1-SystemClock_Config-RCC-false-HAL-false,2-MX_GPIO_Init-GPIO-false-HAL-true,3-MX_USART2_UART_Init-USART2-false-HAL-true
+ProjectManager.functionlistsort=1-SystemClock_Config-RCC-false-HAL-false,2-MX_GPIO_Init-GPIO-false-HAL-true,3-MX_USART2_UART_Init-USART2-false-HAL-true,4-MX_TIM2_Init-TIM2-false-HAL-true
 RCC.AHBFreq_Value=16000000
 RCC.APB1Freq_Value=16000000
 RCC.APB2Freq_Value=16000000

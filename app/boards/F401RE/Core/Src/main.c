@@ -69,11 +69,6 @@ osMessageQueueId_t uartRxMessageQueueHandle;
 const osMessageQueueAttr_t uartRxMessageQueue_attributes = {
   .name = "uartRxMessageQueue"
 };
-/* Definitions for uartRxMessageQueue */
-osMessageQueueId_t uartRxMessageQueueHandle;
-const osMessageQueueAttr_t uartRxMessageQueue_attributes = {
-  .name = "uartRxMessageQueue"
-};
 /* Definitions for uartMutex */
 osMutexId_t uartMutexHandle;
 const osMutexAttr_t uartMutex_attributes = {
@@ -439,47 +434,6 @@ void StartMotorTask(void *argument)
   /* USER CODE END StartMotorTask */
 }
 
-/* USER CODE BEGIN Header_StartMotorTask */
-/**
-* @brief Function implementing the MotorTask thread.
-* @param argument: Not used
-* @retval None
-*/
-/* USER CODE END Header_StartMotorTask */
-void StartMotorTask(void *argument)
-{
-  /* USER CODE BEGIN StartMotorTask */
-  // Integrates PWM with UART input
-  pwm_t motor1;
-
-  pwm_init(&motor1, &htim2, TIM_CHANNEL_1);
-  pwm_start(&motor1);
-
-  /* Infinite loop */
-  for(;;)
-  {
-    if (transfer_cplt)
-    {
-      transfer_cplt = 0;
-      printf("CMD: %s\r\n", rx_buffer);
-      if (!strcmp((char*)rx_buffer, "ON"))
-      {
-        pwm_set(&motor1, 255);
-      }
-      else if (!strcmp((char*)rx_buffer, "OFF"))
-      {
-        pwm_set(&motor1, 0);
-      }
-      else
-      {
-        uint8_t duty = (uint8_t)atoi((char*)rx_buffer);
-        pwm_set(&motor1, duty);
-      }
-    }
-    osDelay(100);
-  }
-  /* USER CODE END StartMotorTask */
-}
 
 /**
   * @brief  Period elapsed callback in non blocking mode

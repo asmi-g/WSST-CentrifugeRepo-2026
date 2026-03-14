@@ -48,7 +48,7 @@ class UARTGui(QWidget):
         if self.ser and self.ser.is_open:
             cmd = self.input_line.text().strip()
             if cmd:
-                self.ser.write((cmd + "\r").encode())  # send CR terminated
+                self.ser.write((cmd + "\r\n").encode())  # send CR terminated
                 self.log.append(f"TX -> {cmd}")
                 self.input_line.clear()
 
@@ -60,7 +60,7 @@ class UARTGui(QWidget):
 
 if __name__ == "__main__":
     # Change this to the COM port your STM32 is using
-    com_port_str = "COM7"  # e.g., "COM4" on Windows or "/dev/ttyUSB0" on Linux
+    com_port_str = "COM9"  # e.g., "COM4" on Windows or "/dev/ttyUSB0" on Linux
     baudrate = 115200
 
     app = QApplication(sys.argv)
