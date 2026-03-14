@@ -47,20 +47,42 @@
 
 /* Private variables ---------------------------------------------------------*/
 TIM_HandleTypeDef htim2;
+TIM_HandleTypeDef htim3;
 
 UART_HandleTypeDef huart2;
 
-/* Definitions for UartTxTask */
-osThreadId_t UartTxTaskHandle;
-const osThreadAttr_t UartTxTask_attributes = {
-  .name = "UartTxTask",
+/* Definitions for HandleUartRxCmdTask */
+osThreadId_t HandleUartRxCmdTaskHandle;
+const osThreadAttr_t HandleUartRxCmdTask_attributes = {
+  .name = "HandleUartRxCmdTask",
   .stack_size = 512 * 4,
   .priority = (osPriority_t) osPriorityNormal,
 };
-/* Definitions for MotorTask */
-osThreadId_t MotorTaskHandle;
-const osThreadAttr_t MotorTask_attributes = {
-  .name = "MotorTask",
+/* Definitions for StaticMotorControlTask */
+osThreadId_t StaticMotorControlTaskHandle;
+const osThreadAttr_t StaticMotorControlTask_attributes = {
+  .name = "StaticMotorControlTask",
+  .stack_size = 512 * 4,
+  .priority = (osPriority_t) osPriorityLow,
+};
+/* Definitions for DynamicMotorControlTask */
+osThreadId_t DynamicMotorControlTaskHandle;
+const osThreadAttr_t DynamicMotorControlTask_attributes = {
+  .name = "DynamicMotorControlTask",
+  .stack_size = 512 * 4,
+  .priority = (osPriority_t) osPriorityLow,
+};
+/* Definitions for HeaterControlTask */
+osThreadId_t HeaterControlTaskHandle;
+const osThreadAttr_t HeaterControlTask_attributes = {
+  .name = "HeaterControlTask",
+  .stack_size = 512 * 4,
+  .priority = (osPriority_t) osPriorityLow,
+};
+/* Definitions for DataAcquisitionTask */
+osThreadId_t DataAcquisitionTaskHandle;
+const osThreadAttr_t DataAcquisitionTask_attributes = {
+  .name = "DataAcquisitionTask",
   .stack_size = 512 * 4,
   .priority = (osPriority_t) osPriorityLow,
 };
@@ -68,6 +90,26 @@ const osThreadAttr_t MotorTask_attributes = {
 osMessageQueueId_t uartRxMessageQueueHandle;
 const osMessageQueueAttr_t uartRxMessageQueue_attributes = {
   .name = "uartRxMessageQueue"
+};
+/* Definitions for staticMotorQueue */
+osMessageQueueId_t staticMotorQueueHandle;
+const osMessageQueueAttr_t staticMotorQueue_attributes = {
+  .name = "staticMotorQueue"
+};
+/* Definitions for dynamicMotorQueue */
+osMessageQueueId_t dynamicMotorQueueHandle;
+const osMessageQueueAttr_t dynamicMotorQueue_attributes = {
+  .name = "dynamicMotorQueue"
+};
+/* Definitions for heaterQueue */
+osMessageQueueId_t heaterQueueHandle;
+const osMessageQueueAttr_t heaterQueue_attributes = {
+  .name = "heaterQueue"
+};
+/* Definitions for dataReadQueue */
+osMessageQueueId_t dataReadQueueHandle;
+const osMessageQueueAttr_t dataReadQueue_attributes = {
+  .name = "dataReadQueue"
 };
 /* Definitions for uartMutex */
 osMutexId_t uartMutexHandle;
@@ -83,8 +125,12 @@ void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_USART2_UART_Init(void);
 static void MX_TIM2_Init(void);
-void StartUartTxTask(void *argument);
-void StartMotorTask(void *argument);
+static void MX_TIM3_Init(void);
+void StartUartRxCmdTask(void *argument);
+void StartStaticMotorTask(void *argument);
+void StartDynamicMotorTask(void *argument);
+void StartHeaterTask(void *argument);
+void StartDataAcquisitionTask(void *argument);
 
 /* USER CODE BEGIN PFP */
 
@@ -109,7 +155,6 @@ int main(void)
   /* MCU Configuration--------------------------------------------------------*/
 
   /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
-
   HAL_Init();
 
   /* USER CODE BEGIN Init */
@@ -127,6 +172,7 @@ int main(void)
   MX_GPIO_Init();
   MX_USART2_UART_Init();
   MX_TIM2_Init();
+  MX_TIM3_Init();
   /* USER CODE BEGIN 2 */
   uart_init(&huart2);
   /* USER CODE END 2 */
@@ -153,16 +199,37 @@ int main(void)
   /* creation of uartRxMessageQueue */
   uartRxMessageQueueHandle = osMessageQueueNew (16, sizeof(uart_message_t), &uartRxMessageQueue_attributes);
 
+  /* creation of staticMotorQueue */
+  staticMotorQueueHandle = osMessageQueueNew (16, sizeof(cmd_msg_t), &staticMotorQueue_attributes);
+
+  /* creation of dynamicMotorQueue */
+  dynamicMotorQueueHandle = osMessageQueueNew (16, sizeof(cmd_msg_t), &dynamicMotorQueue_attributes);
+
+  /* creation of heaterQueue */
+  heaterQueueHandle = osMessageQueueNew (16, sizeof(cmd_msg_t), &heaterQueue_attributes);
+
+  /* creation of dataReadQueue */
+  dataReadQueueHandle = osMessageQueueNew (16, sizeof(cmd_msg_t), &dataReadQueue_attributes);
+
   /* USER CODE BEGIN RTOS_QUEUES */
   /* add queues, ... */
   /* USER CODE END RTOS_QUEUES */
 
   /* Create the thread(s) */
-  /* creation of UartTxTask */
-  UartTxTaskHandle = osThreadNew(StartUartTxTask, NULL, &UartTxTask_attributes);
+  /* creation of HandleUartRxCmdTask */
+  HandleUartRxCmdTaskHandle = osThreadNew(StartUartRxCmdTask, NULL, &HandleUartRxCmdTask_attributes);
 
-  /* creation of MotorTask */
-  MotorTaskHandle = osThreadNew(StartMotorTask, NULL, &MotorTask_attributes);
+  /* creation of StaticMotorControlTask */
+  StaticMotorControlTaskHandle = osThreadNew(StartStaticMotorTask, NULL, &StaticMotorControlTask_attributes);
+
+  /* creation of DynamicMotorControlTask */
+  DynamicMotorControlTaskHandle = osThreadNew(StartDynamicMotorTask, NULL, &DynamicMotorControlTask_attributes);
+
+  /* creation of HeaterControlTask */
+  HeaterControlTaskHandle = osThreadNew(StartHeaterTask, NULL, &HeaterControlTask_attributes);
+
+  /* creation of DataAcquisitionTask */
+  DataAcquisitionTaskHandle = osThreadNew(StartDataAcquisitionTask, NULL, &DataAcquisitionTask_attributes);
 
   /* creation of MotorTask */
   MotorTaskHandle = osThreadNew(StartMotorTask, NULL, &MotorTask_attributes);
@@ -292,6 +359,69 @@ static void MX_TIM2_Init(void)
 }
 
 /**
+  * @brief TIM3 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_TIM3_Init(void)
+{
+
+  /* USER CODE BEGIN TIM3_Init 0 */
+
+  /* USER CODE END TIM3_Init 0 */
+
+  TIM_ClockConfigTypeDef sClockSourceConfig = {0};
+  TIM_MasterConfigTypeDef sMasterConfig = {0};
+  TIM_OC_InitTypeDef sConfigOC = {0};
+
+  /* USER CODE BEGIN TIM3_Init 1 */
+
+  /* USER CODE END TIM3_Init 1 */
+  htim3.Instance = TIM3;
+  htim3.Init.Prescaler = 0;
+  htim3.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim3.Init.Period = 65535;
+  htim3.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  htim3.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+  if (HAL_TIM_Base_Init(&htim3) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
+  if (HAL_TIM_ConfigClockSource(&htim3, &sClockSourceConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  if (HAL_TIM_PWM_Init(&htim3) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+  if (HAL_TIMEx_MasterConfigSynchronization(&htim3, &sMasterConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sConfigOC.OCMode = TIM_OCMODE_PWM1;
+  sConfigOC.Pulse = 0;
+  sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
+  sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
+  if (HAL_TIM_PWM_ConfigChannel(&htim3, &sConfigOC, TIM_CHANNEL_1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  if (HAL_TIM_PWM_ConfigChannel(&htim3, &sConfigOC, TIM_CHANNEL_2) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN TIM3_Init 2 */
+
+  /* USER CODE END TIM3_Init 2 */
+  HAL_TIM_MspPostInit(&htim3);
+
+}
+
+/**
   * @brief USART2 Initialization Function
   * @param None
   * @retval None
@@ -340,10 +470,10 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOA_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_9, GPIO_PIN_RESET);
 
-  /*Configure GPIO pin : PA5 */
-  GPIO_InitStruct.Pin = GPIO_PIN_5;
+  /*Configure GPIO pin : PA9 */
+  GPIO_InitStruct.Pin = GPIO_PIN_9;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
@@ -360,78 +490,208 @@ static void MX_GPIO_Init(void)
 
 /* USER CODE END 4 */
 
-/* USER CODE BEGIN Header_StartUartTxTask */
+/* USER CODE BEGIN Header_StartUartRxCmdTask */
 /**
-  * @brief  Function implementing the UartTxTask thread.
+  * @brief  Function implementing the HandleUartRxCmdTask thread.
   * @param  argument: Not used
   * @retval None
   */
-/* USER CODE END Header_StartUartTxTask */
-void StartUartTxTask(void *argument)
+/* USER CODE END Header_StartUartRxCmdTask */
+void StartUartRxCmdTask(void *argument)
 {
   /* USER CODE BEGIN 5 */
+  uart_message_t rx_msg;
+  cmd_msg_t cmd_msg;
 
   /* Infinite loop */
   for(;;)
   {
-    //uart_tx("Task 1 is running\n\r");
+    if(osMessageQueueGet(uartRxMessageQueueHandle, &rx_msg, NULL, osWaitForever) == osOK)
+    {
+      cmd_msg.cmd = CMD_NONE;
+      cmd_msg.value = 0;
+
+      /* SYSTEM COMMANDS */
+
+      if(strcmp(rx_msg.command, "SYSTEM ON") == 0)
+      {
+        cmd_msg.cmd = CMD_SYSTEM_ON;
+
+        osMessageQueuePut(staticMotorQueueHandle, &cmd_msg, 0, 0);
+        osMessageQueuePut(dataReadQueueHandle, &cmd_msg, 0, 0);
+      }
+
+      else if(strcmp(rx_msg.command, "SYSTEM OFF") == 0)
+      {
+        cmd_msg.cmd = CMD_SYSTEM_OFF;
+
+        osMessageQueuePut(staticMotorQueueHandle, &cmd_msg, 0, 0);
+        osMessageQueuePut(dataReadQueueHandle, &cmd_msg, 0, 0);
+      }
+
+        /* HEATER COMMANDS */
+
+      else if(strcmp(rx_msg.command, "HEATER ON") == 0)
+      {
+        cmd_msg.cmd = CMD_HEATER_ON;
+
+        osMessageQueuePut(heaterQueueHandle, &cmd_msg, 0, 0);
+      }
+
+      else if(strcmp(rx_msg.command, "HEATER OFF") == 0)
+      {
+        cmd_msg.cmd = CMD_HEATER_OFF;
+
+        osMessageQueuePut(heaterQueueHandle, &cmd_msg, 0, 0);
+      }
+
+      /* MOTOR SPEED */
+
+      else
+      {
+        int duty = atoi(rx_msg.command);
+
+        if(duty >= 0 && duty <= 255)
+        {
+          cmd_msg.cmd = CMD_SET_PWM;
+          cmd_msg.value = duty;
+
+          osMessageQueuePut(dynamicMotorQueueHandle, &cmd_msg, 0, 0);
+        }
+        else
+        {
+          printf("Unknown command: %s\n", rx_msg.command);
+        }
+      }
+    }
     osDelay(1000);
 
   }
   /* USER CODE END 5 */
 }
 
-/* USER CODE BEGIN Header_StartMotorTask */
+/* USER CODE BEGIN Header_StartStaticMotorTask */
 /**
-* @brief Function implementing the MotorTask thread.
+* @brief Function implementing the StaticMotorControlTask thread.
 * @param argument: Not used
 * @retval None
 */
-/* USER CODE END Header_StartMotorTask */
-void StartMotorTask(void *argument)
+/* USER CODE END Header_StartStaticMotorTask */
+void StartStaticMotorTask(void *argument)
 {
-  /* USER CODE BEGIN StartMotorTask */
+  /* USER CODE BEGIN StartStaticMotorTask */
   // Integrates PWM with UART input
-  pwm_t motor1;
-  uart_message_t msg;
+  cmd_msg_t msg;
+  pwm_t stepperMotor1;
+  pwm_t stepperMotor2;
 
-  pwm_init(&motor1, &htim2, TIM_CHANNEL_1);
-  pwm_start(&motor1);
+  int fixedStepperMotor1Duty = 125;
+  int fixedStepperMotor2Duty = 125;
+
+  pwm_init(&stepperMotor1, &htim3, TIM_CHANNEL_1);
+  pwm_start(&stepperMotor1);  
+
+  pwm_init(&stepperMotor2, &htim3, TIM_CHANNEL_2);
+  pwm_start(&stepperMotor2);
 
   /* Infinite loop */
   for(;;)
   {
-    if(osMessageQueueGet(uartRxMessageQueueHandle, &msg, NULL, 10) == osOK)
+    if(osMessageQueueGet(dynamicMotorQueueHandle, &msg, NULL, osWaitForever) == osOK)
     {
-      if(strcmp(msg.command, "ON") == 0)
+      if(msg.cmd == CMD_SYSTEM_ON)
       {
-        pwm_set(&motor1, 255);
+        pwm_set(&stepperMotor1, fixedStepperMotor1Duty);
+        pwm_set(&stepperMotor2, fixedStepperMotor2Duty);
       }
-      else if(strcmp(msg.command, "OFF") == 0)
+      else if(msg.cmd == CMD_SYSTEM_OFF)
       {
-        pwm_set(&motor1, 0);
+        pwm_set(&stepperMotor1, 0);
+        pwm_set(&stepperMotor2, 0);
       }
-      else
+    }
+    
+    osDelay(100);
+  }
+  /* USER CODE END StartStaticMotorTask */
+}
+
+/* USER CODE BEGIN Header_StartDynamicMotorTask */
+/**
+* @brief Function implementing the DynamicMotorControlTask thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_StartDynamicMotorTask */
+void StartDynamicMotorTask(void *argument)
+{
+  /* USER CODE BEGIN StartDynamicMotorTask */
+  // Integrates PWM with UART input
+  cmd_msg_t msg;
+  pwm_t dcMotor;
+
+  pwm_init(&dcMotor, &htim2, TIM_CHANNEL_1);
+  pwm_start(&dcMotor);
+
+  /* Infinite loop */
+  for(;;)
+  {
+    if(osMessageQueueGet(dynamicMotorQueueHandle, &msg, NULL, osWaitForever) == osOK)
+    {
+      if(msg.cmd == CMD_SET_PWM)
       {
-        int duty = atoi(msg.command);
-        if(duty < 0) duty = 0;
-        if(duty > 255) duty = 255;
-        // Only set PWM if string is a valid number
-        printf("Received command: '%s', parsed duty: %d\n", msg.command, duty);
-        if(duty != 0 || strcmp(msg.command, "0") == 0)
-        {
-          pwm_set(&motor1, (uint8_t)duty);
-        }
-        else
-        {
-          // invalid string, do nothing or print warning
-          printf("Unknown command: '%s'\n", msg.command);
-        }
+        pwm_set(&dcMotor, msg.value);
       }
+    }
+
+    osDelay(100);
+  }
+  /* USER CODE END StartDynamicMotorTask */
+}
+
+/* USER CODE BEGIN Header_StartHeaterTask */
+/**
+* @brief Function implementing the HeaterControlTask thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_StartHeaterTask */
+void StartHeaterTask(void *argument)
+{
+  /* USER CODE BEGIN StartHeaterTask */
+  cmd_msg_t msg;
+  /* Infinite loop */
+  for(;;)
+  {
+    if(osMessageQueueGet(heaterQueueHandle, &msg, NULL, osWaitForever) == osOK)
+    {
+      if(msg.cmd == CMD_HEATER_ON)
+        HAL_GPIO_WritePin(GPIOA, GPIO_PIN_9, GPIO_PIN_SET);
+
+      else if(msg.cmd == CMD_HEATER_OFF)
+        HAL_GPIO_WritePin(GPIOA, GPIO_PIN_9, GPIO_PIN_RESET);
     }
     osDelay(100);
   }
-  /* USER CODE END StartMotorTask */
+  /* USER CODE END StartHeaterTask */
+}
+
+/* USER CODE BEGIN Header_StartDataAcquisitionTask */
+/**
+* @brief Function implementing the DataAcquisitionTask thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_StartDataAcquisitionTask */
+void StartDataAcquisitionTask(void *argument)
+{
+  /* USER CODE BEGIN StartDataAcquisitionTask */
+  /* Infinite loop */
+  for(;;)
+  {
+    osDelay(1);
+  }
+  /* USER CODE END StartDataAcquisitionTask */
 }
 
 
