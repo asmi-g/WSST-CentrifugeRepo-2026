@@ -46,7 +46,11 @@ source .bashrc
 
 ## Configure the Build
 Run the following command in the /app/ directory, and REMEMBER TO CHANGE THE BOARD PARAMETER TO MATCH WHICH BOARD YOU'RE WORKING WITH:
+<<<<<<< HEAD
 ```
+=======
+```sh
+>>>>>>> c1f572a4917f276ac47c73235ca9dacf6097a6a1
 cd ..
 cmake -S . -B build -G "Unix Makefiles"   -DCMAKE_TOOLCHAIN_FILE="cmake/toolchain-arm-none-eabi.cmake" -DCMAKE_C_COMPILER=CC   -DCMAKE_CXX_COMPILER=CXX   -DBOARD=F401RE
 ```

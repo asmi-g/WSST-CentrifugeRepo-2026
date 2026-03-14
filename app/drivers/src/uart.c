@@ -19,6 +19,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
   if (huart == uart_handle)
   {
+<<<<<<< HEAD
     if (rx_byte != '\r')
     {
       rx_buffer[rx_indx++] = rx_byte;
@@ -66,6 +67,46 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
       HAL_UART_Transmit(uart_handle, &rx_byte, 1, HAL_MAX_DELAY);
     }
   }*/
+=======
+    static uint8_t rx_indx = 0;
+    static uint8_t rx_buffer_local[16];  // short buffer for one command
+    uart_message_t msg;
+
+    // Filter end of line
+    if (rx_byte != '\r' && rx_byte != '\n')
+    {
+      if (rx_indx < sizeof(rx_buffer_local) - 1)
+        rx_buffer_local[rx_indx++] = rx_byte;
+    }
+    else
+    {
+      if (rx_indx > 0)
+      {
+        rx_buffer_local[rx_indx] = '\0'; // Null terminate
+        // Copy safely
+        strncpy(msg.command, (char*)rx_buffer_local, sizeof(msg.command));
+        msg.command[sizeof(msg.command)-1] = '\0';
+        osMessageQueuePut(uartRxMessageQueueHandle, &msg, 0, 0);
+
+        // Echo back complete line
+        //HAL_UART_Transmit_IT(uart_handle, rx_buffer_local, rx_indx);
+
+        rx_indx = 0; // Reset buffer
+      }
+      // Else: just ignore stray '\r' or '\n'
+    }
+    // Restart reception
+    HAL_UART_Receive_IT(uart_handle, &rx_byte, 1);
+  
+  }
+
+}
+
+void uart_tx(const char *str){
+  osMutexAcquire(uartMutexHandle, osWaitForever);
+  HAL_UART_Transmit(uart_handle, (uint8_t*)str, strlen(str), HAL_MAX_DELAY);
+  osMutexRelease(uartMutexHandle);
+>>>>>>> c1f572a4917f276ac47c73235ca9dacf6097a6a1
 }
 
 

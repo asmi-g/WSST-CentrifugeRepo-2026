@@ -48,7 +48,11 @@ class UARTGui(QWidget):
         if self.ser and self.ser.is_open:
             cmd = self.input_line.text().strip()
             if cmd:
+<<<<<<< HEAD
                 self.ser.write((cmd + "\r").encode())  # send CR terminated
+=======
+                self.ser.write((cmd + "\r\n").encode())  # send CR terminated
+>>>>>>> c1f572a4917f276ac47c73235ca9dacf6097a6a1
                 self.log.append(f"TX -> {cmd}")
                 self.input_line.clear()
 
