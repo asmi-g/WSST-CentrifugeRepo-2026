@@ -61,7 +61,26 @@ void Error_Handler(void);
 /* Private defines -----------------------------------------------------------*/
 
 /* USER CODE BEGIN Private defines */
+typedef enum
+{
+    CMD_NONE = 0,
 
+    CMD_SYSTEM_ON,
+    CMD_SYSTEM_OFF,
+
+    CMD_HEATER_ON,
+    CMD_HEATER_OFF,
+
+    CMD_SET_PWM
+
+} cmd_t;
+
+typedef struct
+{
+    cmd_t cmd;
+    uint16_t value;
+
+} cmd_msg_t;
 /* USER CODE END Private defines */
 
 #ifdef __cplusplus
