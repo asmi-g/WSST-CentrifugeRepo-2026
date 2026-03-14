@@ -1,9 +1,5 @@
 app/build/*
-<<<<<<< HEAD
 *.bashrc
-=======
-.bashrc
->>>>>>> 717301e (stage-2-issue-8-gui-development-microcontroller-prototyping: documentation fixes for build issues)
 
 app/boards/F401RE/build/*
 app/boards/F411RE/build/*
