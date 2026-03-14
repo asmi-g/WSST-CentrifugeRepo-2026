@@ -38,7 +38,11 @@ Navigate to ``app/init`` and make a copy of the file called .bashrc-template. Na
 Paste the copied path from above in the environment variable in .bashrc, labelled ``ARM_TOOLCHAIN``. Check that the location of the CC (gnu gcc compiler) and CXX (gnu g++ compiler) also exists.
 
 ## Initialize
+<<<<<<< HEAD
 Run the environment variable initialization:
+=======
+Run the environment variable initialization. BEFORE YOU DO, check the paths in the bash script to see if they match where you installed your Arm GNU Toolchain components. IF NOT, change them to match, and add your own script to /app/init for your own environment. DO NOT modify the existing .bashrc. Call it something like .bashrc-asmi, and replace your own name:
+>>>>>>> d4b283eb38b0b3391474d39f9085f61e6a601f7e
 ````sh
 cd app/init
 source .bashrc
@@ -48,7 +52,12 @@ source .bashrc
 Run the following command in the /app/ directory, and REMEMBER TO CHANGE THE BOARD PARAMETER TO MATCH WHICH BOARD YOU'RE WORKING WITH:
 ```sh
 cd ..
+<<<<<<< HEAD
 cmake -S . -B build -G "Unix Makefiles"   -DCMAKE_TOOLCHAIN_FILE="cmake/toolchain-arm-none-eabi.cmake" -DCMAKE_C_COMPILER=CC   -DCMAKE_CXX_COMPILER=CXX   -DBOARD=F401RE
+=======
+cmake -S . -B build -G "Unix Makefiles"   -DCMAKE_TOOLCHAIN_FILE="cmake/toolchain-arm-none-eabi.cmake" -DCMAKE_C_COMPILER=CC   -DCMAKE_CXX_COMPILER=CXX   -DBOARD=F411RE
+
+>>>>>>> d4b283eb38b0b3391474d39f9085f61e6a601f7e
 ```
 
 ## Build

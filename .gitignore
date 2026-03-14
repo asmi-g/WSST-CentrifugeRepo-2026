@@ -1,5 +1,9 @@
 app/build/*
+<<<<<<< HEAD
 *.bashrc
+=======
+.bashrc-mac
+>>>>>>> d4b283eb38b0b3391474d39f9085f61e6a601f7e
 
 app/boards/F401RE/build/*
 app/boards/F411RE/build/*
