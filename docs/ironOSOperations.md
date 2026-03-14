@@ -1,4 +1,29 @@
 # IronOS Operations Documentation
+## Build *NEW* Custom Temp Build
+Visit ironOSBuildFlash.md for more info
+This builds IronOS using its Docker-based environment and outputs your IronOS Executable (a `.bin` file) into `tools/firmware/ironos/out/`, run from the main project directory:
+
+```sh
+cd tools
+chmod +x ./scripts/*.sh # only have to do once
+./scripts/build_ironos_pinecilv2.sh
+```
+
+## Flash Changed Temp Build
+Put the Pinecil into Flash Mode (visit ironOSBuildFlash.md for more info), then flash your local IronOS build:
+
+```sh
+./scripts/flash_pinecilv2.sh firmware/ironos/out/Pinecilv2_EN.bin
+```
+
+## Restore Default Settings [REQUIRED TO USE NEW TEMP]
+Enable "Restore Default Settings" manually on Pinecil
+    * Power on the iron.
+    * Hold the “–” (minus) button to enter the settings menu.
+    * Scroll through the menu until you find: Advanced Settings
+    * Scroll through the menu until you then find: Restore Default Settings
+    * Press the “+” button to select it.
+    * Confirm if it asks.
 
 ## Change Boot Temperature
 
@@ -30,6 +55,7 @@ Options:
 6. Enable "Restore Default Settings" manually on Pinecil
     * Power on the iron.
     * Hold the “–” (minus) button to enter the settings menu.
-    * Scroll through the menu until you find: Restore Default Settings
+    * Scroll through the menu until you find: Advanced Settings
+    * Scroll through the menu until you then find: Restore Default Settings
     * Press the “+” button to select it.
     * Confirm if it asks.
