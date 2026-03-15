@@ -234,9 +234,6 @@ int main(void)
   /* creation of DataAcquisitionTask */
   DataAcquisitionTaskHandle = osThreadNew(StartDataAcquisitionTask, NULL, &DataAcquisitionTask_attributes);
 
-  /* creation of MotorTask */
-  MotorTaskHandle = osThreadNew(StartMotorTask, NULL, &MotorTask_attributes);
-
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
   /* USER CODE END RTOS_THREADS */
@@ -744,6 +741,24 @@ void StartHeaterTask(void *argument)
     osDelay(100);
   }
   /* USER CODE END StartHeaterTask */
+}
+
+/* USER CODE BEGIN Header_StartDataAcquisitionTask */
+/**
+* @brief Function implementing the DataAcquisitionTask thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_StartDataAcquisitionTask */
+void StartDataAcquisitionTask(void *argument)
+{
+  /* USER CODE BEGIN StartDataAcquisitionTask */
+  /* Infinite loop */
+  for(;;)
+  {
+    osDelay(1);
+  }
+  /* USER CODE END StartDataAcquisitionTask */
 }
 
 /* USER CODE BEGIN Header_StartDataAcquisitionTask */
