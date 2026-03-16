@@ -82,7 +82,7 @@ Put the Pinecil into flash mode: <br>
 4. Pinecil will not show in the PC as a USB data drive. On Windows, you will hear a single beep when connected in flash mode.
 
 ### 3. Flash Executable
-Flashes the ironOS executable found in `tools/firmware/ironos/current/Pinecilv2_EN.bin`:
+Flashes the ironOS executable found in `tools/firmware/ironos/tracked/Pinecilv2_EN.bin`:
 
 ```sh
 cd tools
@@ -210,7 +210,7 @@ rm -rf firmware/ironos/out bin/Pinecilv2_EN.bin
 
 When you're ready, copy your tested `Pinecilv2_EN.bin` into `tools/firmware/ironos/current` (replace the current one that's there), still from `/tools`:
 ```sh
-cp firmware/ironos/out/Pinecilv2_EN.bin firmware/ironos/current
+cp firmware/ironos/out/Pinecilv2_EN.bin firmware/ironos/tracked
 ```
 
 ### 5. Commit and push your IronOS changes
