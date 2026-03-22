@@ -761,24 +761,6 @@ void StartDataAcquisitionTask(void *argument)
   /* USER CODE END StartDataAcquisitionTask */
 }
 
-/* USER CODE BEGIN Header_StartDataAcquisitionTask */
-/**
-* @brief Function implementing the DataAcquisitionTask thread.
-* @param argument: Not used
-* @retval None
-*/
-/* USER CODE END Header_StartDataAcquisitionTask */
-void StartDataAcquisitionTask(void *argument)
-{
-  /* USER CODE BEGIN StartDataAcquisitionTask */
-  /* Infinite loop */
-  for(;;)
-  {
-    osDelay(1);
-  }
-  /* USER CODE END StartDataAcquisitionTask */
-}
-
 
 /**
   * @brief  Period elapsed callback in non blocking mode
