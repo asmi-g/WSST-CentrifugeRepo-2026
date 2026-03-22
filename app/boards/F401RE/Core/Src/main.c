@@ -761,7 +761,6 @@ void StartDataAcquisitionTask(void *argument)
   /* USER CODE END StartDataAcquisitionTask */
 }
 
-
 /**
   * @brief  Period elapsed callback in non blocking mode
   * @note   This function is called  when TIM5 interrupt took place, inside
