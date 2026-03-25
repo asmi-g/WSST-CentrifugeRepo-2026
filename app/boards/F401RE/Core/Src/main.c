@@ -27,7 +27,7 @@
 #include <stdlib.h>
 #include "uart.h"
 #include "pwm.h"
-#include "max31856.h"
+#include "max31856-onln.h"
 
 /* USER CODE END Includes */
 
@@ -432,7 +432,7 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOB_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOB, TC1_CS_Pin|TC2_CS_Pin, GPIO_PIN_SET);
+  HAL_GPIO_WritePin(GPIOB, TC1_CS_Pin|TC2_CS_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pins : TC1_CS_Pin TC2_CS_Pin */
   GPIO_InitStruct.Pin = TC1_CS_Pin|TC2_CS_Pin;
@@ -536,22 +536,40 @@ void StartTestThermoTask(void *argument)
 {
   /* USER CODE BEGIN StartTestThermoTask */
   /* Infinite loop */
-  max31856_t tc1;
-  max31856_t tc2;
-  float temp1, temp2;
+  //max31856_t tc1;
+  //max31856_t tc2;
+  //float temp1, temp2;
   char msg[128];
 
-  max31856_init(&tc1, &hspi1, TC1_CS_GPIO_Port, TC1_CS_Pin);
-  max31856_init(&tc2, &hspi2, TC2_CS_GPIO_Port, TC2_CS_Pin);
+  //max31856_init(&tc1, &hspi1, TC1_CS_GPIO_Port, TC1_CS_Pin);
+  //max31856_init(&tc2, &hspi2, TC2_CS_GPIO_Port, TC2_CS_Pin);
+
+  //DEFINED FOR SPI1
+  max31856_t therm = {&hspi1, {TC1_CS_GPIO_Port, TC1_CS_Pin}};
+  max31856_init_onln(&therm);
+  max31856_set_noise_filter(&therm, CR0_FILTER_OUT_50Hz);
+  max31856_set_cold_junction_enable(&therm, CR0_CJ_ENABLED);
+  max31856_set_thermocouple_type(&therm, CR1_TC_TYPE_K);
+  max31856_set_average_samples(&therm, CR1_AVG_TC_SAMPLES_2);
+  max31856_set_open_circuit_fault_detection(&therm, CR0_OC_DETECT_ENABLED_TC_LESS_2ms);
+  max31856_set_conversion_mode(&therm, CR0_CONV_CONTINUOUS);
+
 
   osDelay(200);
 
   for(;;)
   {
-    temp1 = max31856_read_temp(&tc1);
-    temp2 = max31856_read_temp(&tc2);
+    //temp1 = max31856_read_temp(&tc1);
+    //temp2 = max31856_read_temp(&tc2);
+    //float temp = max31856_read_TC_temp(&therm);
 
-    snprintf(msg, sizeof(msg), "TC1: %.2f C, TC2: %.2f C\r\n", temp1, temp2);
+    max31856_read_fault(&therm);
+    if (therm.sr.val) {
+      /* Handle thermocouple error */
+    }
+    float temp = max31856_read_TC_temp(&therm);
+    snprintf(msg, sizeof(msg), "TC1: %.2f C\r\n", temp);
+
     uart_tx(msg);
 
     osDelay(500);
