@@ -27,6 +27,7 @@
 #include <stdlib.h>
 #include "uart.h"
 #include "pwm.h"
+#include "thermocouple.h"
 
 /* USER CODE END Includes */
 
@@ -46,6 +47,8 @@
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
+SPI_HandleTypeDef hspi1;
+
 TIM_HandleTypeDef htim2;
 TIM_HandleTypeDef htim3;
 TIM_HandleTypeDef htim4;
@@ -128,6 +131,7 @@ static void MX_USART2_UART_Init(void);
 static void MX_TIM2_Init(void);
 static void MX_TIM3_Init(void);
 static void MX_TIM4_Init(void);
+static void MX_SPI1_Init(void);
 void StartUartRxCmdTask(void *argument);
 void StartStaticMotorTask(void *argument);
 void StartDynamicMotorTask(void *argument);
@@ -176,6 +180,7 @@ int main(void)
   MX_TIM2_Init();
   MX_TIM3_Init();
   MX_TIM4_Init();
+  MX_SPI1_Init();
   /* USER CODE BEGIN 2 */
   uart_init(&huart2);
   /* USER CODE END 2 */
@@ -297,6 +302,44 @@ void SystemClock_Config(void)
   {
     Error_Handler();
   }
+}
+
+/**
+  * @brief SPI1 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_SPI1_Init(void)
+{
+
+  /* USER CODE BEGIN SPI1_Init 0 */
+
+  /* USER CODE END SPI1_Init 0 */
+
+  /* USER CODE BEGIN SPI1_Init 1 */
+
+  /* USER CODE END SPI1_Init 1 */
+  /* SPI1 parameter configuration*/
+  hspi1.Instance = SPI1;
+  hspi1.Init.Mode = SPI_MODE_MASTER;
+  hspi1.Init.Direction = SPI_DIRECTION_2LINES;
+  hspi1.Init.DataSize = SPI_DATASIZE_8BIT;
+  hspi1.Init.CLKPolarity = SPI_POLARITY_LOW;
+  hspi1.Init.CLKPhase = SPI_PHASE_2EDGE;
+  hspi1.Init.NSS = SPI_NSS_SOFT;
+  hspi1.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_2;
+  hspi1.Init.FirstBit = SPI_FIRSTBIT_MSB;
+  hspi1.Init.TIMode = SPI_TIMODE_DISABLE;
+  hspi1.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
+  hspi1.Init.CRCPolynomial = 10;
+  if (HAL_SPI_Init(&hspi1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN SPI1_Init 2 */
+
+  /* USER CODE END SPI1_Init 2 */
+
 }
 
 /**
@@ -530,14 +573,24 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOB_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_9, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOB, TC1_CS_Pin|TC2_CS_Pin, GPIO_PIN_RESET);
 
-  /*Configure GPIO pin : PA9 */
-  GPIO_InitStruct.Pin = GPIO_PIN_9;
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(HEATER1_GPIO_GPIO_Port, HEATER1_GPIO_Pin, GPIO_PIN_RESET);
+
+  /*Configure GPIO pins : TC1_CS_Pin TC2_CS_Pin */
+  GPIO_InitStruct.Pin = TC1_CS_Pin|TC2_CS_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : HEATER1_GPIO_Pin */
+  GPIO_InitStruct.Pin = HEATER1_GPIO_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(HEATER1_GPIO_GPIO_Port, &GPIO_InitStruct);
 
   /* USER CODE BEGIN MX_GPIO_Init_2 */
 
@@ -650,13 +703,13 @@ void StartStaticMotorTask(void *argument)
   int fixedStepperMotor2Duty = 255;
   int fixedLinearActuatorDuty = 255;
 
-  pwm_init(&stepperMotor1, &htim3, TIM_CHANNEL_1);
+  pwm_init(&stepperMotor1, STEPPER_MOTOR1_PWM_TIMER, STEPPER_MOTOR1_PWM_CHANNEL);
   pwm_start(&stepperMotor1);  
 
-  pwm_init(&stepperMotor2, &htim3, TIM_CHANNEL_2);
+  pwm_init(&stepperMotor2, STEPPER_MOTOR2_PWM_TIMER, STEPPER_MOTOR2_PWM_CHANNEL);
   pwm_start(&stepperMotor2);
 
-  pwm_init(&linearActuator, &htim4, TIM_CHANNEL_1);
+  pwm_init(&linearActuator, LINEAR_ACTUATOR_PWM_TIMER, LINEAR_ACTUATOR_PWM_CHANNEL);
   pwm_start(&linearActuator);
 
   /* Infinite loop */
@@ -697,7 +750,7 @@ void StartDynamicMotorTask(void *argument)
   cmd_msg_t msg;
   pwm_t dcMotor;
 
-  pwm_init(&dcMotor, &htim2, TIM_CHANNEL_1);
+  pwm_init(&dcMotor, DYNAMIC_MOTOR_PWM_TIMER, DYNAMIC_MOTOR_PWM_CHANNEL);
   pwm_start(&dcMotor);
 
   /* Infinite loop */
@@ -733,10 +786,10 @@ void StartHeaterTask(void *argument)
     if(osMessageQueueGet(heaterQueueHandle, &msg, NULL, osWaitForever) == osOK)
     {
       if(msg.cmd == CMD_HEATER_ON)
-        HAL_GPIO_WritePin(GPIOA, GPIO_PIN_9, GPIO_PIN_SET);
+        HAL_GPIO_WritePin(HEATER1_GPIO_PORT, HEATER1_PIN, GPIO_PIN_SET);
 
       else if(msg.cmd == CMD_HEATER_OFF)
-        HAL_GPIO_WritePin(GPIOA, GPIO_PIN_9, GPIO_PIN_RESET);
+        HAL_GPIO_WritePin(HEATER1_GPIO_PORT, HEATER1_PIN, GPIO_PIN_RESET);
     }
     osDelay(100);
   }
@@ -753,10 +806,32 @@ void StartHeaterTask(void *argument)
 void StartDataAcquisitionTask(void *argument)
 {
   /* USER CODE BEGIN StartDataAcquisitionTask */
+  char msg[128];
+
+  max31856_t therm = {&hspi1, {TC1_CS_GPIO_Port, TC1_CS_Pin}};
+  max31856_init(&therm);
+  max31856_set_noise_filter(&therm, CR0_FILTER_OUT_50Hz);
+  max31856_set_cold_junction_enable(&therm, CR0_CJ_ENABLED);
+  max31856_set_thermocouple_type(&therm, CR1_TC_TYPE_K);
+  max31856_set_average_samples(&therm, CR1_AVG_TC_SAMPLES_2);
+  max31856_set_open_circuit_fault_detection(&therm, CR0_OC_DETECT_ENABLED_TC_LESS_2ms);
+  max31856_set_conversion_mode(&therm, CR0_CONV_CONTINUOUS);
+
+
   /* Infinite loop */
   for(;;)
   {
-    osDelay(1);
+
+    //Read thermocouple temperature and send over UART
+    max31856_read_fault(&therm);
+    if (therm.sr.val) {
+      /* Handle thermocouple error */
+    }
+    float temp = max31856_read_TC_temp(&therm);
+    snprintf(msg, sizeof(msg), "TC1: %.2f C\r\n", temp);
+
+    uart_tx(msg);
+    osDelay(500);
   }
   /* USER CODE END StartDataAcquisitionTask */
 }
