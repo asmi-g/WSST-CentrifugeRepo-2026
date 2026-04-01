@@ -118,6 +118,8 @@ typedef struct
 #define STEPPER_MOTOR2_PWM_CHANNEL TIM_CHANNEL_2
 
 // At PB6
+// If this requires any modification, also update the corresponding object initialization in app/drivers/servo_cfg.c
+//Connections needed: 5V, GND, PB6
 #define LINEAR_ACTUATOR_PWM_TIMER &htim4
 #define LINEAR_ACTUATOR_PWM_CHANNEL TIM_CHANNEL_1
 

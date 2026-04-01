@@ -28,6 +28,7 @@
 #include "uart.h"
 #include "pwm.h"
 #include "thermocouple.h"
+#include "servo.h"
 
 /* USER CODE END Includes */
 
@@ -38,7 +39,7 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-
+#define linearActuator  0
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -677,7 +678,7 @@ void StartUartRxCmdTask(void *argument)
         }
       }
     }
-    osDelay(1000);
+    osDelay(50);
 
   }
   /* USER CODE END 5 */
@@ -697,11 +698,11 @@ void StartStaticMotorTask(void *argument)
   cmd_msg_t msg;
   pwm_t stepperMotor1;
   pwm_t stepperMotor2;
-  pwm_t linearActuator;
 
   int fixedStepperMotor1Duty = 255;
   int fixedStepperMotor2Duty = 255;
-  int fixedLinearActuatorDuty = 255;
+
+  uint8_t systemOn = 0;
 
   pwm_init(&stepperMotor1, STEPPER_MOTOR1_PWM_TIMER, STEPPER_MOTOR1_PWM_CHANNEL);
   pwm_start(&stepperMotor1);  
@@ -709,29 +710,38 @@ void StartStaticMotorTask(void *argument)
   pwm_init(&stepperMotor2, STEPPER_MOTOR2_PWM_TIMER, STEPPER_MOTOR2_PWM_CHANNEL);
   pwm_start(&stepperMotor2);
 
-  pwm_init(&linearActuator, LINEAR_ACTUATOR_PWM_TIMER, LINEAR_ACTUATOR_PWM_CHANNEL);
-  pwm_start(&linearActuator);
+  SERVO_Init(linearActuator);
 
   /* Infinite loop */
   for(;;)
   {
-    if(osMessageQueueGet(staticMotorQueueHandle, &msg, NULL, osWaitForever) == osOK)
+    if(osMessageQueueGet(staticMotorQueueHandle, &msg, NULL, 0) == osOK)
     {
       if(msg.cmd == CMD_SYSTEM_ON)
-      {
-        pwm_set(&stepperMotor1, fixedStepperMotor1Duty);
-        pwm_set(&stepperMotor2, fixedStepperMotor2Duty);
-        pwm_set(&linearActuator, fixedLinearActuatorDuty);
-      }
+        systemOn = 1;
       else if(msg.cmd == CMD_SYSTEM_OFF)
-      {
-        pwm_set(&stepperMotor1, 0);
-        pwm_set(&stepperMotor2, 0);
-        pwm_set(&linearActuator, 0);
-      }
+        systemOn = 0;
     }
     
-    osDelay(100);
+    if(systemOn == 1)
+    {
+      pwm_set(&stepperMotor1, fixedStepperMotor1Duty);
+      pwm_set(&stepperMotor2, fixedStepperMotor2Duty);
+
+      // Servo control for linear actuator, alternates between 0 and 180 degrees
+      SERVO_MoveTo(linearActuator, 0);
+      HAL_Delay(2000);
+      SERVO_MoveTo(linearActuator, 180);
+      HAL_Delay(2000);
+
+    }
+    else if(systemOn == 0)
+    {
+      pwm_set(&stepperMotor1, 0);
+      pwm_set(&stepperMotor2, 0);
+    }
+    
+    osDelay(10);
   }
   /* USER CODE END StartStaticMotorTask */
 }

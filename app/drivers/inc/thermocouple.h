@@ -1,3 +1,8 @@
+// Thermocouple source code (including: thermocouple.h, thermocouple.c) is adapted from the following:
+// - Source Code: https://github.com/cankocak/max31856/tree/main
+
+
+
 /**
  * MAX31856 library to be used with STM32 HAL
  *
