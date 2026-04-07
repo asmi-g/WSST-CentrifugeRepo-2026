@@ -69,10 +69,14 @@ void Error_Handler(void);
 #define TC1_CS_GPIO_Port GPIOB
 #define TC2_CS_Pin GPIO_PIN_1
 #define TC2_CS_GPIO_Port GPIOB
+#define HEATER2_GPIO_Pin GPIO_PIN_8
+#define HEATER2_GPIO_GPIO_Port GPIOA
 #define HEATER1_GPIO_Pin GPIO_PIN_9
 #define HEATER1_GPIO_GPIO_Port GPIOA
 #define LINEAR1_PWM_Pin GPIO_PIN_6
 #define LINEAR1_PWM_GPIO_Port GPIOB
+#define STEPPER3_PWM_Pin GPIO_PIN_8
+#define STEPPER3_PWM_GPIO_Port GPIOB
 
 /* USER CODE BEGIN Private defines */
 typedef enum
@@ -96,14 +100,33 @@ typedef struct
 
 } cmd_msg_t;
 
+// At PB0
 #define TC1_CS_GPIO_Port GPIOB
 #define TC1_CS_Pin GPIO_PIN_0
 
+// At PB1
 #define TC2_CS_GPIO_Port GPIOB
 #define TC2_CS_Pin GPIO_PIN_1
 
+// At PB5
+#define SPI_MOSI_GPIO_Port GPIOB
+#define SPI_MOSI_Pin GPIO_PIN_5
+
+// At PB4
+#define SPI_MISO_GPIO_Port GPIOB
+#define SPI_MISO_Pin GPIO_PIN_4
+
+// At PB3
+#define SPI_SCK_GPIO_Port GPIOB
+#define SPI_SCK_Pin GPIO_PIN_3
+
+// At PA9
 #define HEATER1_GPIO_PORT GPIOA
 #define HEATER1_PIN GPIO_PIN_9
+
+// At PA8
+#define HEATER2_GPIO_PORT GPIOA
+#define HEATER2_PIN GPIO_PIN_8
 
 // At PA5
 #define DYNAMIC_MOTOR_PWM_TIMER &htim2
@@ -116,6 +139,11 @@ typedef struct
 // At PA7
 #define STEPPER_MOTOR2_PWM_TIMER &htim3
 #define STEPPER_MOTOR2_PWM_CHANNEL TIM_CHANNEL_2
+
+// At PB6
+#define STEPPER_MOTOR3_PWM_TIMER &htim10
+#define STEPPER_MOTOR3_PWM_CHANNEL TIM_CHANNEL_1
+
 
 // At PB6
 // If this requires any modification, also update the corresponding object initialization in app/drivers/servo_cfg.c

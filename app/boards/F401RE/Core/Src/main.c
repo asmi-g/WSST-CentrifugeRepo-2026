@@ -53,6 +53,7 @@ SPI_HandleTypeDef hspi1;
 TIM_HandleTypeDef htim2;
 TIM_HandleTypeDef htim3;
 TIM_HandleTypeDef htim4;
+TIM_HandleTypeDef htim10;
 
 UART_HandleTypeDef huart2;
 
@@ -133,6 +134,7 @@ static void MX_TIM2_Init(void);
 static void MX_TIM3_Init(void);
 static void MX_TIM4_Init(void);
 static void MX_SPI1_Init(void);
+static void MX_TIM10_Init(void);
 void StartUartRxCmdTask(void *argument);
 void StartStaticMotorTask(void *argument);
 void StartDynamicMotorTask(void *argument);
@@ -182,6 +184,7 @@ int main(void)
   MX_TIM3_Init();
   MX_TIM4_Init();
   MX_SPI1_Init();
+  MX_TIM10_Init();
   /* USER CODE BEGIN 2 */
   uart_init(&huart2);
   /* USER CODE END 2 */
@@ -525,6 +528,52 @@ static void MX_TIM4_Init(void)
 }
 
 /**
+  * @brief TIM10 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_TIM10_Init(void)
+{
+
+  /* USER CODE BEGIN TIM10_Init 0 */
+
+  /* USER CODE END TIM10_Init 0 */
+
+  TIM_OC_InitTypeDef sConfigOC = {0};
+
+  /* USER CODE BEGIN TIM10_Init 1 */
+
+  /* USER CODE END TIM10_Init 1 */
+  htim10.Instance = TIM10;
+  htim10.Init.Prescaler = 0;
+  htim10.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim10.Init.Period = 65535;
+  htim10.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  htim10.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+  if (HAL_TIM_Base_Init(&htim10) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  if (HAL_TIM_PWM_Init(&htim10) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sConfigOC.OCMode = TIM_OCMODE_PWM1;
+  sConfigOC.Pulse = 0;
+  sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
+  sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
+  if (HAL_TIM_PWM_ConfigChannel(&htim10, &sConfigOC, TIM_CHANNEL_1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN TIM10_Init 2 */
+
+  /* USER CODE END TIM10_Init 2 */
+  HAL_TIM_MspPostInit(&htim10);
+
+}
+
+/**
   * @brief USART2 Initialization Function
   * @param None
   * @retval None
@@ -577,7 +626,7 @@ static void MX_GPIO_Init(void)
   HAL_GPIO_WritePin(GPIOB, TC1_CS_Pin|TC2_CS_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(HEATER1_GPIO_GPIO_Port, HEATER1_GPIO_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOA, HEATER2_GPIO_Pin|HEATER1_GPIO_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pins : TC1_CS_Pin TC2_CS_Pin */
   GPIO_InitStruct.Pin = TC1_CS_Pin|TC2_CS_Pin;
@@ -586,12 +635,12 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
-  /*Configure GPIO pin : HEATER1_GPIO_Pin */
-  GPIO_InitStruct.Pin = HEATER1_GPIO_Pin;
+  /*Configure GPIO pins : HEATER2_GPIO_Pin HEATER1_GPIO_Pin */
+  GPIO_InitStruct.Pin = HEATER2_GPIO_Pin|HEATER1_GPIO_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(HEATER1_GPIO_GPIO_Port, &GPIO_InitStruct);
+  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
   /* USER CODE BEGIN MX_GPIO_Init_2 */
 
@@ -698,9 +747,11 @@ void StartStaticMotorTask(void *argument)
   cmd_msg_t msg;
   pwm_t stepperMotor1;
   pwm_t stepperMotor2;
+  pwm_t stepperMotor3;
 
   int fixedStepperMotor1Duty = 255;
   int fixedStepperMotor2Duty = 255;
+  int fixedStepperMotor3Duty = 255;
 
   uint8_t systemOn = 0;
 
@@ -709,6 +760,9 @@ void StartStaticMotorTask(void *argument)
 
   pwm_init(&stepperMotor2, STEPPER_MOTOR2_PWM_TIMER, STEPPER_MOTOR2_PWM_CHANNEL);
   pwm_start(&stepperMotor2);
+
+  pwm_init(&stepperMotor3, STEPPER_MOTOR3_PWM_TIMER, STEPPER_MOTOR3_PWM_CHANNEL);
+  pwm_start(&stepperMotor3);
 
   SERVO_Init(linearActuator);
 
@@ -727,6 +781,7 @@ void StartStaticMotorTask(void *argument)
     {
       pwm_set(&stepperMotor1, fixedStepperMotor1Duty);
       pwm_set(&stepperMotor2, fixedStepperMotor2Duty);
+      pwm_set(&stepperMotor3, fixedStepperMotor3Duty);
 
       // Servo control for linear actuator, alternates between 0 and 180 degrees
       SERVO_MoveTo(linearActuator, 0);
@@ -739,6 +794,7 @@ void StartStaticMotorTask(void *argument)
     {
       pwm_set(&stepperMotor1, 0);
       pwm_set(&stepperMotor2, 0);
+      pwm_set(&stepperMotor3, 0);
     }
     
     osDelay(10);
@@ -797,9 +853,11 @@ void StartHeaterTask(void *argument)
     {
       if(msg.cmd == CMD_HEATER_ON)
         HAL_GPIO_WritePin(HEATER1_GPIO_PORT, HEATER1_PIN, GPIO_PIN_SET);
+        HAL_GPIO_WritePin(HEATER2_GPIO_PORT, HEATER2_PIN, GPIO_PIN_SET);
 
       else if(msg.cmd == CMD_HEATER_OFF)
         HAL_GPIO_WritePin(HEATER1_GPIO_PORT, HEATER1_PIN, GPIO_PIN_RESET);
+        HAL_GPIO_WritePin(HEATER2_GPIO_PORT, HEATER2_PIN, GPIO_PIN_RESET);
     }
     osDelay(100);
   }
@@ -818,27 +876,40 @@ void StartDataAcquisitionTask(void *argument)
   /* USER CODE BEGIN StartDataAcquisitionTask */
   char msg[128];
 
-  max31856_t therm = {&hspi1, {TC1_CS_GPIO_Port, TC1_CS_Pin}};
-  max31856_init(&therm);
-  max31856_set_noise_filter(&therm, CR0_FILTER_OUT_50Hz);
-  max31856_set_cold_junction_enable(&therm, CR0_CJ_ENABLED);
-  max31856_set_thermocouple_type(&therm, CR1_TC_TYPE_K);
-  max31856_set_average_samples(&therm, CR1_AVG_TC_SAMPLES_2);
-  max31856_set_open_circuit_fault_detection(&therm, CR0_OC_DETECT_ENABLED_TC_LESS_2ms);
-  max31856_set_conversion_mode(&therm, CR0_CONV_CONTINUOUS);
+  max31856_t therm1 = {&hspi1, {TC1_CS_GPIO_Port, TC1_CS_Pin}};
+  max31856_init(&therm1);
+  max31856_set_noise_filter(&therm1, CR0_FILTER_OUT_50Hz);
+  max31856_set_cold_junction_enable(&therm1, CR0_CJ_ENABLED);
+  max31856_set_thermocouple_type(&therm1, CR1_TC_TYPE_K);
+  max31856_set_average_samples(&therm1, CR1_AVG_TC_SAMPLES_2);
+  max31856_set_open_circuit_fault_detection(&therm1, CR0_OC_DETECT_ENABLED_TC_LESS_2ms);
+  max31856_set_conversion_mode(&therm1, CR0_CONV_CONTINUOUS);
 
+  max31856_t therm2 = {&hspi1, {TC2_CS_GPIO_Port, TC2_CS_Pin}};
+  max31856_init(&therm2);
+  max31856_set_noise_filter(&therm2, CR0_FILTER_OUT_50Hz);
+  max31856_set_cold_junction_enable(&therm2, CR0_CJ_ENABLED);
+  max31856_set_thermocouple_type(&therm2, CR1_TC_TYPE_K);
+  max31856_set_average_samples(&therm2, CR1_AVG_TC_SAMPLES_2);
+  max31856_set_open_circuit_fault_detection(&therm2, CR0_OC_DETECT_ENABLED_TC_LESS_2ms);
+  max31856_set_conversion_mode(&therm2, CR0_CONV_CONTINUOUS);
 
   /* Infinite loop */
   for(;;)
   {
 
     //Read thermocouple temperature and send over UART
-    max31856_read_fault(&therm);
-    if (therm.sr.val) {
+    max31856_read_fault(&therm1);
+    max31856_read_fault(&therm2);
+    if (therm1.sr.val) {
       /* Handle thermocouple error */
     }
-    float temp = max31856_read_TC_temp(&therm);
-    snprintf(msg, sizeof(msg), "TC1: %.2f C\r\n", temp);
+    if (therm2.sr.val) {
+      /* Handle thermocouple error */
+    }
+    float temp1 = max31856_read_TC_temp(&therm1);
+    float temp2 = max31856_read_TC_temp(&therm2);
+    snprintf(msg, sizeof(msg), "TC1: %.2f C, TC2: %.2f C\r\n", temp1, temp2);
 
     uart_tx(msg);
     osDelay(500);
