@@ -59,7 +59,7 @@
 /* USER CODE END 0 */
 
 void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
-                                                                                /**
+                                        /**
   * Initializes the Global MSP.
   */
 void HAL_MspInit(void)
@@ -227,28 +227,6 @@ void HAL_TIM_MspPostInit(TIM_HandleTypeDef* htim)
 
     /* USER CODE END TIM2_MspPostInit 1 */
   }
-  else if(htim->Instance==TIM3)
-  {
-    /* USER CODE BEGIN TIM3_MspPostInit 0 */
-
-    /* USER CODE END TIM3_MspPostInit 0 */
-
-    __HAL_RCC_GPIOA_CLK_ENABLE();
-    /**TIM3 GPIO Configuration
-    PA6     ------> TIM3_CH1
-    PA7     ------> TIM3_CH2
-    */
-    GPIO_InitStruct.Pin = STEPPER1_PWM_Pin|STEPPER2_PWM_Pin;
-    GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
-    GPIO_InitStruct.Pull = GPIO_NOPULL;
-    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-    GPIO_InitStruct.Alternate = GPIO_AF2_TIM3;
-    HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
-
-    /* USER CODE BEGIN TIM3_MspPostInit 1 */
-
-    /* USER CODE END TIM3_MspPostInit 1 */
-  }
   else if(htim->Instance==TIM4)
   {
     /* USER CODE BEGIN TIM4_MspPostInit 0 */
@@ -269,27 +247,6 @@ void HAL_TIM_MspPostInit(TIM_HandleTypeDef* htim)
     /* USER CODE BEGIN TIM4_MspPostInit 1 */
 
     /* USER CODE END TIM4_MspPostInit 1 */
-  }
-  else if(htim->Instance==TIM10)
-  {
-    /* USER CODE BEGIN TIM10_MspPostInit 0 */
-
-    /* USER CODE END TIM10_MspPostInit 0 */
-
-    __HAL_RCC_GPIOB_CLK_ENABLE();
-    /**TIM10 GPIO Configuration
-    PB8     ------> TIM10_CH1
-    */
-    GPIO_InitStruct.Pin = STEPPER3_PWM_Pin;
-    GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
-    GPIO_InitStruct.Pull = GPIO_NOPULL;
-    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-    GPIO_InitStruct.Alternate = GPIO_AF3_TIM10;
-    HAL_GPIO_Init(STEPPER3_PWM_GPIO_Port, &GPIO_InitStruct);
-
-    /* USER CODE BEGIN TIM10_MspPostInit 1 */
-
-    /* USER CODE END TIM10_MspPostInit 1 */
   }
 
 }

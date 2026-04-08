@@ -61,10 +61,10 @@ void Error_Handler(void);
 /* Private defines -----------------------------------------------------------*/
 #define DYNAMIC_PWM_Pin GPIO_PIN_5
 #define DYNAMIC_PWM_GPIO_Port GPIOA
-#define STEPPER1_PWM_Pin GPIO_PIN_6
-#define STEPPER1_PWM_GPIO_Port GPIOA
-#define STEPPER2_PWM_Pin GPIO_PIN_7
-#define STEPPER2_PWM_GPIO_Port GPIOA
+#define STEPPER1_GPIO_Pin GPIO_PIN_6
+#define STEPPER1_GPIO_GPIO_Port GPIOA
+#define STEPPER2_GPIO_Pin GPIO_PIN_7
+#define STEPPER2_GPIO_GPIO_Port GPIOA
 #define TC1_CS_Pin GPIO_PIN_0
 #define TC1_CS_GPIO_Port GPIOB
 #define TC2_CS_Pin GPIO_PIN_1
@@ -75,8 +75,8 @@ void Error_Handler(void);
 #define HEATER1_GPIO_GPIO_Port GPIOA
 #define LINEAR1_PWM_Pin GPIO_PIN_6
 #define LINEAR1_PWM_GPIO_Port GPIOB
-#define STEPPER3_PWM_Pin GPIO_PIN_8
-#define STEPPER3_PWM_GPIO_Port GPIOB
+#define STEPPER3_GPIO_Pin GPIO_PIN_8
+#define STEPPER3_GPIO_GPIO_Port GPIOB
 
 /* USER CODE BEGIN Private defines */
 typedef enum
