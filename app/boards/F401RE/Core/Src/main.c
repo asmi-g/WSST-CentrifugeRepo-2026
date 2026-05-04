@@ -535,16 +535,9 @@ void StartMotorTask(void *argument)
 void StartTestThermoTask(void *argument)
 {
   /* USER CODE BEGIN StartTestThermoTask */
-  /* Infinite loop */
-  //max31856_t tc1;
-  //max31856_t tc2;
-  //float temp1, temp2;
   char msg[128];
 
-  //max31856_init(&tc1, &hspi1, TC1_CS_GPIO_Port, TC1_CS_Pin);
-  //max31856_init(&tc2, &hspi2, TC2_CS_GPIO_Port, TC2_CS_Pin);
-
-  //DEFINED FOR SPI1
+  // SPI1 thermocouple
   max31856_t therm = {&hspi1, {TC1_CS_GPIO_Port, TC1_CS_Pin}};
   max31856_init_onln(&therm);
   max31856_set_noise_filter(&therm, CR0_FILTER_OUT_50Hz);
@@ -554,49 +547,40 @@ void StartTestThermoTask(void *argument)
   max31856_set_open_circuit_fault_detection(&therm, CR0_OC_DETECT_ENABLED_TC_LESS_2ms);
   max31856_set_conversion_mode(&therm, CR0_CONV_CONTINUOUS);
 
+  // SPI2 thermocouple
+  max31856_t therm2 = {&hspi2, {TC2_CS_GPIO_Port, TC2_CS_Pin}};
+  max31856_init_onln(&therm2);
+  max31856_set_noise_filter(&therm2, CR0_FILTER_OUT_50Hz);
+  max31856_set_cold_junction_enable(&therm2, CR0_CJ_ENABLED);
+  max31856_set_thermocouple_type(&therm2, CR1_TC_TYPE_K);
+  max31856_set_average_samples(&therm2, CR1_AVG_TC_SAMPLES_2);
+  max31856_set_open_circuit_fault_detection(&therm2, CR0_OC_DETECT_ENABLED_TC_LESS_2ms);
+  max31856_set_conversion_mode(&therm2, CR0_CONV_CONTINUOUS);
 
   osDelay(200);
 
-  for(;;)
-  {
-    //temp1 = max31856_read_temp(&tc1);
-    //temp2 = max31856_read_temp(&tc2);
-    //float temp = max31856_read_TC_temp(&therm);
+  // CSV header (print once)
+  uart_tx("time_ms,TC1_C,TC2_C\r\n");
 
+  for (;;)
+  {
+    // Read TC1
     max31856_read_fault(&therm);
-    if (therm.sr.val) {
-      /* Handle thermocouple error */
-    }
     float temp = max31856_read_TC_temp(&therm);
-    snprintf(msg, sizeof(msg), "TC1: %.2f C\r\n", temp);
+
+    // Read TC2
+    max31856_read_fault(&therm2);
+    float temp2 = max31856_read_TC_temp(&therm2);
+
+    // CSV line
+    snprintf(msg, sizeof(msg), "%lu,%.2f,%.2f\r\n",
+             osKernelGetTickCount(), temp, temp2);
 
     uart_tx(msg);
 
     osDelay(500);
   }
   /* USER CODE END StartTestThermoTask */
-}
-
-/**
-  * @brief  Period elapsed callback in non blocking mode
-  * @note   This function is called  when TIM5 interrupt took place, inside
-  * HAL_TIM_IRQHandler(). It makes a direct call to HAL_IncTick() to increment
-  * a global variable "uwTick" used as application time base.
-  * @param  htim : TIM handle
-  * @retval None
-  */
-void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
-{
-  /* USER CODE BEGIN Callback 0 */
-
-  /* USER CODE END Callback 0 */
-  if (htim->Instance == TIM5)
-  {
-    HAL_IncTick();
-  }
-  /* USER CODE BEGIN Callback 1 */
-
-  /* USER CODE END Callback 1 */
 }
 
 /**
