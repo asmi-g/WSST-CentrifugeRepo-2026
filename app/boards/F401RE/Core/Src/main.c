@@ -742,10 +742,10 @@ void StartStepperMotorTask(void *argument)
 
   uint8_t systemOn = 0;
 
-  //PA6, PA7, PB6
+  //PA6, PA7, PB8 NEED PA6, PB8
   STEPPER_Init(&stepper1, GPIOA, GPIO_PIN_6);
   STEPPER_Init(&stepper2, GPIOA, GPIO_PIN_7);
-  STEPPER_Init(&stepper3, GPIOB, GPIO_PIN_6);
+  STEPPER_Init(&stepper3, GPIOB, GPIO_PIN_8);
 
   /* Infinite loop */
   for(;;)

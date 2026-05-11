@@ -109,10 +109,12 @@ typedef struct
 #define TC2_CS_Pin GPIO_PIN_1
 
 // At PB5
+// MOSI = SDI
 #define SPI_MOSI_GPIO_Port GPIOB
 #define SPI_MOSI_Pin GPIO_PIN_5
 
 // At PB4
+// MISO = SDO
 #define SPI_MISO_GPIO_Port GPIOB
 #define SPI_MISO_Pin GPIO_PIN_4
 

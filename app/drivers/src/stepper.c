@@ -41,4 +41,5 @@ void STEPPER_StepThree(stepper_t* m1, stepper_t* m2, stepper_t* m3, uint32_t ste
         
         delay_us(us); 
     }
+    
 }
