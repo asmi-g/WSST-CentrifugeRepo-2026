@@ -10,7 +10,7 @@
       "cwd": "${workspaceFolder}/app",
       "executable": "${workspaceFolder}/app/build/stm32-multi-board.elf",
 
-      "device": "STM32F411RE",
+      "device": "STM32F401RE",
       "interface": "swd",
 
       "configFiles": [
@@ -19,9 +19,10 @@
       ],
 
       "runToEntryPoint": "main",
-      "svdFile": "${workspaceFolder}/app/boards/F411RE/STM32F411.svd",
+      "svdFile": "${workspaceFolder}/app/boards/F401RE/STM32F401RE.svd",
 
       "preLaunchTask": "Build"
     }
   ]
 }
+
