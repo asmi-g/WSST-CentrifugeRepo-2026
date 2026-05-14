@@ -10,8 +10,9 @@
       "cwd": "${workspaceFolder}/app",
       "executable": "${workspaceFolder}/app/build/stm32-multi-board.elf",
 
-      "serverpath": "C:/Users/asmig/OpenOCD-20251211-0.12.0/bin/openocd.exe",
-      "armToolchainPath": "C:/Program Files (x86)/Arm GNU Toolchain arm-none-eabi/14.3 rel1/bin",
+      "serverpath": "${env:USERPROFILE}/OpenOCD-20251211-0.12.0/bin/openocd.exe",
+      "armToolchainPath": "${env:ProgramFiles(x86)}/Arm GNU Toolchain arm-none-eabi/14.3 rel1/bin",
+
 
       "device": "STM32F411RE",
       "interface": "swd",
