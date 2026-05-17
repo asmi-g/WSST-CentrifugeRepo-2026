@@ -30,6 +30,7 @@
 #include "thermocouple.h"
 #include "servo.h"
 #include "stepper.h"
+#include "encoder.h"
 
 /* USER CODE END Includes */
 
@@ -100,6 +101,13 @@ const osThreadAttr_t ServoMotorControlTask_attributes = {
   .stack_size = 512 * 4,
   .priority = (osPriority_t) osPriorityLow,
 };
+/* Definitions for EncoderTask */
+osThreadId_t EncoderTaskHandle;
+const osThreadAttr_t EncoderTask_attributes = {
+  .name = "EncoderTask",
+  .stack_size = 512 * 4,
+  .priority = (osPriority_t) osPriorityLow,
+};
 /* Definitions for uartRxMessageQueue */
 osMessageQueueId_t uartRxMessageQueueHandle;
 const osMessageQueueAttr_t uartRxMessageQueue_attributes = {
@@ -130,6 +138,11 @@ osMessageQueueId_t servoMotorQueueHandle;
 const osMessageQueueAttr_t servoMotorQueue_attributes = {
   .name = "servoMotorQueue"
 };
+/* Definitions for encoderQueue */
+osMessageQueueId_t encoderQueueHandle;
+const osMessageQueueAttr_t encoderQueue_attributes = {
+  .name = "encoderQueue"
+};
 /* Definitions for uartMutex */
 osMutexId_t uartMutexHandle;
 const osMutexAttr_t uartMutex_attributes = {
@@ -154,6 +167,7 @@ void StartDynamicMotorTask(void *argument);
 void StartHeaterTask(void *argument);
 void StartDataAcquisitionTask(void *argument);
 void StartServoMotorTask(void *argument);
+void StartEncoderTask(void *argument);
 
 /* USER CODE BEGIN PFP */
 
@@ -240,6 +254,9 @@ int main(void)
   /* creation of servoMotorQueue */
   servoMotorQueueHandle = osMessageQueueNew (16, sizeof(cmd_msg_t), &servoMotorQueue_attributes);
 
+  /* creation of encoderQueue */
+  encoderQueueHandle = osMessageQueueNew (16, sizeof(cmd_msg_t), &encoderQueue_attributes);
+
   /* USER CODE BEGIN RTOS_QUEUES */
   /* add queues, ... */
   /* USER CODE END RTOS_QUEUES */
@@ -262,6 +279,9 @@ int main(void)
 
   /* creation of ServoMotorControlTask */
   ServoMotorControlTaskHandle = osThreadNew(StartServoMotorTask, NULL, &ServoMotorControlTask_attributes);
+
+  /* creation of EncoderTask */
+  EncoderTaskHandle = osThreadNew(StartEncoderTask, NULL, &EncoderTask_attributes);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
@@ -437,7 +457,7 @@ static void MX_TIM3_Init(void)
 
   /* USER CODE END TIM3_Init 0 */
 
-  TIM_ClockConfigTypeDef sClockSourceConfig = {0};
+  TIM_Encoder_InitTypeDef sConfig = {0};
   TIM_MasterConfigTypeDef sMasterConfig = {0};
 
   /* USER CODE BEGIN TIM3_Init 1 */
@@ -448,13 +468,17 @@ static void MX_TIM3_Init(void)
   htim3.Init.CounterMode = TIM_COUNTERMODE_UP;
   htim3.Init.Period = 65535;
   htim3.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
-  htim3.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
-  if (HAL_TIM_Base_Init(&htim3) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
-  if (HAL_TIM_ConfigClockSource(&htim3, &sClockSourceConfig) != HAL_OK)
+  htim3.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_ENABLE;
+  sConfig.EncoderMode = TIM_ENCODERMODE_TI1;
+  sConfig.IC1Polarity = TIM_ICPOLARITY_RISING;
+  sConfig.IC1Selection = TIM_ICSELECTION_DIRECTTI;
+  sConfig.IC1Prescaler = TIM_ICPSC_DIV1;
+  sConfig.IC1Filter = 0;
+  sConfig.IC2Polarity = TIM_ICPOLARITY_RISING;
+  sConfig.IC2Selection = TIM_ICSELECTION_DIRECTTI;
+  sConfig.IC2Prescaler = TIM_ICPSC_DIV1;
+  sConfig.IC2Filter = 10;
+  if (HAL_TIM_Encoder_Init(&htim3, &sConfig) != HAL_OK)
   {
     Error_Handler();
   }
@@ -608,6 +632,7 @@ static void MX_GPIO_Init(void)
   /* GPIO Ports Clock Enable */
   __HAL_RCC_GPIOA_CLK_ENABLE();
   __HAL_RCC_GPIOB_CLK_ENABLE();
+  __HAL_RCC_GPIOC_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOA, STEPPER1_GPIO_Pin|STEPPER2_GPIO_Pin|HEATER2_GPIO_Pin|HEATER1_GPIO_Pin, GPIO_PIN_RESET);
@@ -932,6 +957,37 @@ void StartServoMotorTask(void *argument)
     osDelay(10);
   }
   /* USER CODE END StartServoMotorTask */
+}
+
+/* USER CODE BEGIN Header_StartEncoderTask */
+/**
+* @brief Function implementing the EncoderTask thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_StartEncoderTask */
+void StartEncoderTask(void *argument)
+{
+  /* USER CODE BEGIN StartEncoderTask */
+  encoder_t enc1;
+  ENCODER_Init(&enc1, &htim3, 2000);  // 1000PPR x2 = 2000CPR
+  ENCODER_Zero(&enc1);                // start from 0
+
+  char msg[64];
+
+  /* Infinite loop */
+  for(;;)
+  {
+    int32_t counts  = ENCODER_GetCount(&enc1);
+    float   degrees = ENCODER_GetDegrees(&enc1);
+    float   rpm     = ENCODER_GetRPM(&enc1, 50); // matches osDelay below
+
+    snprintf(msg, sizeof(msg), "ENC: %ld counts | %.1f deg | %.1f RPM\r\n", counts, degrees, rpm);
+    uart_tx(msg);
+
+    osDelay(50);
+  }
+  /* USER CODE END StartEncoderTask */
 }
 
 /**
