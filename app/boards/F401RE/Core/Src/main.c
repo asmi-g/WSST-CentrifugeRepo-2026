@@ -760,12 +760,27 @@ void StartStepperMotorTask(void *argument)
   
   // Integrates PWM with UART input
   cmd_msg_t msg;
+  char debug_msg[64];
 
   stepper_t stepper1;
   stepper_t stepper2;
   stepper_t stepper3;
 
   uint8_t systemOn = 0;
+
+  uint8_t  s3_steps_done = 0;       // how many 30-degree increments completed
+  uint32_t s3_wait_start = 0;       // timestamp of when wait began
+  uint8_t  s3_waiting    = 0;       // currently in 5s wait?
+
+  static const uint16_t s3_increment_table[12] = {
+    134, 134, 134, 134,
+    133, 133, 133, 133,
+    133, 133, 133, 133
+  };
+
+  encoder_t enc1;
+  ENCODER_Init(&enc1, &htim3, 4000);  // 4000 CPR from datasheet
+  ENCODER_Zero(&enc1);                // start from 0
 
   //PA6, PA7, PB8 NEED PA6, PB8
   STEPPER_Init(&stepper1, GPIOA, GPIO_PIN_6);
@@ -777,22 +792,44 @@ void StartStepperMotorTask(void *argument)
   {
     if(osMessageQueueGet(stepperMotorQueueHandle, &msg, NULL, 0) == osOK)
     {
-      if(msg.cmd == CMD_SYSTEM_ON)
+      if(msg.cmd == CMD_SYSTEM_ON){
         systemOn = 1;
-      else if(msg.cmd == CMD_SYSTEM_OFF)
+      }
+      else if(msg.cmd == CMD_SYSTEM_OFF){
         systemOn = 0;
+        // reset stepper3 state on system off
+        s3_steps_done = 0;
+        s3_waiting    = 0;
+      }
+
     }
     
     if(systemOn == 1)
     {
-      STEPPER_StepThree(&stepper1, &stepper2, &stepper3, 10, 2000); 
+      STEPPER_StepTwo(&stepper1, &stepper2, 10, 5, 2000); 
+      // Driver set to 8000 pulses per revolution
+      #define TOTAL_INCREMENTS 12   // 12 x 30deg = 360deg
+      if(s3_steps_done < TOTAL_INCREMENTS)
+      {
+        if(!s3_waiting)
+        {
+          STEPPER_Step(&stepper3, s3_increment_table[s3_steps_done], 5, 2000);
+          s3_steps_done++;
+          s3_waiting    = 1;
+          s3_wait_start = osKernelGetTickCount();
+        }
+        else
+        {
+          if((osKernelGetTickCount() - s3_wait_start) >= 5000)
+            s3_waiting = 0;
+        }
+      }
     }
     else if(systemOn == 0)
     {
-      //STEPPER_StepThree(&stepper1, &stepper2, &stepper3, 0, 1);
-      STEPPER_Step(&stepper1, 0, 500);
-      STEPPER_Step(&stepper2, 0, 500); 
-      STEPPER_Step(&stepper3, 0, 500);  
+      STEPPER_Step(&stepper1, 0, 0, 500);
+      STEPPER_Step(&stepper2, 0, 0, 500); 
+      STEPPER_Step(&stepper3, 0, 0, 500);  
     }
     
     osDelay(10);
@@ -909,9 +946,9 @@ void StartDataAcquisitionTask(void *argument)
     }
     float temp1 = max31856_read_TC_temp(&therm1);
     float temp2 = max31856_read_TC_temp(&therm2);
-    snprintf(msg, sizeof(msg), "TC1: %.2f C, TC2: %.2f C\r\n", temp1, temp2);
+    //snprintf(msg, sizeof(msg), "TC1: %.2f C, TC2: %.2f C\r\n", temp1, temp2);
 
-    uart_tx(msg);
+    //uart_tx(msg);
     osDelay(500);
   }
   /* USER CODE END StartDataAcquisitionTask */
@@ -970,7 +1007,7 @@ void StartEncoderTask(void *argument)
 {
   /* USER CODE BEGIN StartEncoderTask */
   encoder_t enc1;
-  ENCODER_Init(&enc1, &htim3, 2000);  // 1000PPR x2 = 2000CPR
+  ENCODER_Init(&enc1, &htim3, 2000);  // 4000 CPR from datasheet
   ENCODER_Zero(&enc1);                // start from 0
 
   char msg[64];

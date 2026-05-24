@@ -79,7 +79,7 @@ class UARTGui(QWidget):
 
 if __name__ == "__main__":
     # Change this to the COM port your STM32 is using
-    com_port_str = "COM6"  # e.g., "COM4" on Windows or "/dev/ttyUSB0" on Linux
+    com_port_str = "COM9"  # e.g., "COM4" on Windows or "/dev/ttyUSB0" on Linux
     baudrate = 115200
 
     app = QApplication(sys.argv)
