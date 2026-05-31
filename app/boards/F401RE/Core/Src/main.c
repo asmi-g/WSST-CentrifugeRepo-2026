@@ -772,10 +772,14 @@ void StartStepperMotorTask(void *argument)
   uint32_t s3_wait_start = 0;       // timestamp of when wait began
   uint8_t  s3_waiting    = 0;       // currently in 5s wait?
 
-  static const uint16_t s3_increment_table[12] = {
+  /*static const uint16_t s3_increment_table[12] = {
     134, 134, 134, 134,
     133, 133, 133, 133,
     133, 133, 133, 133
+  };*/
+
+  static const uint16_t s3_increment_table[12] = {
+    134, 134, 133, 133, 133, 133,
   };
 
   encoder_t enc1;
@@ -1021,6 +1025,8 @@ void StartEncoderTask(void *argument)
 
     snprintf(msg, sizeof(msg), "ENC: %ld counts | %.1f deg | %.1f RPM\r\n", counts, degrees, rpm);
     uart_tx(msg);
+
+    //ENCODER_WaitForIndex(&enc1, GPIOC, GPIO_PIN_8);
 
     osDelay(50);
   }

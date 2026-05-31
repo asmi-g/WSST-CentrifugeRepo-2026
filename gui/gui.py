@@ -1,6 +1,6 @@
 import sys
 import serial
-from PyQt5.QtWidgets import QApplication, QWidget, QTextEdit, QLineEdit, QPushButton, QVBoxLayout, QLabel
+from PyQt5.QtWidgets import QApplication, QWidget, QTextEdit, QLineEdit, QPushButton, QVBoxLayout, QHBoxLayout, QLabel
 from PyQt5.QtWidgets import QSplitter
 from PyQt5.QtCore import QTimer
 from PyQt5.QtCore import Qt
@@ -39,7 +39,15 @@ class UARTGui(QWidget):
         layout.addWidget(QLabel("Commands Sent (TX):"))
         layout.addWidget(self.tx_log)
 
-        layout.addWidget(QLabel("Command Input:"))
+        layout.addWidget(QLabel("Commands:"))
+        quick_btn_layout = QHBoxLayout()
+        for label in ["SYSTEM ON", "SYSTEM OFF", "HEATER ON", "HEATER OFF"]:
+            btn = QPushButton(label, self)
+            btn.clicked.connect(lambda checked, cmd=label: self.send_string(cmd))
+            quick_btn_layout.addWidget(btn)
+        layout.addLayout(quick_btn_layout)
+
+        layout.addWidget(QLabel("Custom Command Input:"))
         layout.addWidget(self.input_line)
         layout.addWidget(self.send_btn)
 
@@ -76,6 +84,13 @@ class UARTGui(QWidget):
             data = self.ser.read(self.ser.in_waiting).decode(errors="ignore")
             if data:
                 self.rx_log.append(data.strip())
+
+    def send_string(self, cmd):
+        """Send a fixed string directly over UART."""
+        if self.ser and self.ser.is_open:
+            self.ser.write((cmd + "\r\n").encode())
+            self.tx_log.append(cmd)
+
 
 if __name__ == "__main__":
     # Change this to the COM port your STM32 is using

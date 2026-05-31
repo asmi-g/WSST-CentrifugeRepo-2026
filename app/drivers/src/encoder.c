@@ -38,3 +38,11 @@ float ENCODER_GetRPM(encoder_t *enc, uint32_t delta_ms)
     // counts/ms → revolutions/min
     return ((float)delta / (float)enc->cpr) * (60000.0f / (float)delta_ms);
 }
+
+void ENCODER_WaitForIndex(encoder_t *enc, GPIO_TypeDef *zPort, uint16_t zPin)
+{
+    // Wait for Z pulse to go high then low (one full pulse)
+    while(HAL_GPIO_ReadPin(zPort, zPin) == GPIO_PIN_RESET);  // wait for rising
+    while(HAL_GPIO_ReadPin(zPort, zPin) == GPIO_PIN_SET);    // wait for falling
+    ENCODER_Zero(enc);  // zero position at index
+}

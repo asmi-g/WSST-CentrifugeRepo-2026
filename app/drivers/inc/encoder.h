@@ -15,5 +15,6 @@ void    ENCODER_Zero        (encoder_t *enc);
 int32_t ENCODER_GetCount    (encoder_t *enc);
 float   ENCODER_GetDegrees  (encoder_t *enc);
 float   ENCODER_GetRPM      (encoder_t *enc, uint32_t delta_ms);
+void    ENCODER_WaitForIndex(encoder_t *enc, GPIO_TypeDef *zPort, uint16_t zPin);
 
 #endif
