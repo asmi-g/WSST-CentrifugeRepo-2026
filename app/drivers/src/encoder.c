@@ -46,3 +46,17 @@ void ENCODER_WaitForIndex(encoder_t *enc, GPIO_TypeDef *zPort, uint16_t zPin)
     while(HAL_GPIO_ReadPin(zPort, zPin) == GPIO_PIN_SET);    // wait for falling
     ENCODER_Zero(enc);  // zero position at index
 }
+
+void ENCODER_HomeOnZ(encoder_t *enc, stepper_t *motor, GPIO_TypeDef *zPort, uint16_t zPin)
+{
+    STEPPER_SetDir(motor, 0);  // reverse
+
+    // Step one pulse at a time until Z fires
+    while(HAL_GPIO_ReadPin(zPort, zPin) == GPIO_PIN_RESET)
+    {
+        STEPPER_Step(motor, 1, 5, 500);
+    }
+
+    STEPPER_SetDir(motor, 1);  // restore forward
+    ENCODER_Zero(enc);         // this is now home
+}

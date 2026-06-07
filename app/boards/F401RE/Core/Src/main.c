@@ -638,7 +638,10 @@ static void MX_GPIO_Init(void)
   HAL_GPIO_WritePin(GPIOA, STEPPER1_GPIO_Pin|STEPPER2_GPIO_Pin|HEATER2_GPIO_Pin|HEATER1_GPIO_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOB, TC1_CS_Pin|TC2_CS_Pin|STEPPER3_GPIO_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOB, TC1_CS_Pin|TC2_CS_Pin|PCB_CARRIER_GPIO_Pin, GPIO_PIN_RESET);
+
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(PCB_CARRIER_DIR_GPIO_Port, PCB_CARRIER_DIR_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pins : STEPPER1_GPIO_Pin STEPPER2_GPIO_Pin HEATER2_GPIO_Pin HEATER1_GPIO_Pin */
   GPIO_InitStruct.Pin = STEPPER1_GPIO_Pin|STEPPER2_GPIO_Pin|HEATER2_GPIO_Pin|HEATER1_GPIO_Pin;
@@ -647,12 +650,25 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : TC1_CS_Pin TC2_CS_Pin STEPPER3_GPIO_Pin */
-  GPIO_InitStruct.Pin = TC1_CS_Pin|TC2_CS_Pin|STEPPER3_GPIO_Pin;
+  /*Configure GPIO pins : TC1_CS_Pin TC2_CS_Pin PCB_CARRIER_GPIO_Pin */
+  GPIO_InitStruct.Pin = TC1_CS_Pin|TC2_CS_Pin|PCB_CARRIER_GPIO_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : PCB_CARRIER_Z__Pin */
+  GPIO_InitStruct.Pin = PCB_CARRIER_Z__Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(PCB_CARRIER_Z__GPIO_Port, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : PCB_CARRIER_DIR_Pin */
+  GPIO_InitStruct.Pin = PCB_CARRIER_DIR_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(PCB_CARRIER_DIR_GPIO_Port, &GPIO_InitStruct);
 
   /* USER CODE BEGIN MX_GPIO_Init_2 */
 
@@ -787,9 +803,12 @@ void StartStepperMotorTask(void *argument)
   ENCODER_Zero(&enc1);                // start from 0
 
   //PA6, PA7, PB8 NEED PA6, PB8
-  STEPPER_Init(&stepper1, GPIOA, GPIO_PIN_6);
-  STEPPER_Init(&stepper2, GPIOA, GPIO_PIN_7);
-  STEPPER_Init(&stepper3, GPIOB, GPIO_PIN_8);
+  STEPPER_Init(&stepper1, GPIOA, GPIO_PIN_6, NULL, 0);
+  STEPPER_Init(&stepper2, GPIOA, GPIO_PIN_7, NULL, 0);
+  STEPPER_Init(&stepper3, GPIOB, GPIO_PIN_8, GPIOC, GPIO_PIN_11);
+
+  ENCODER_HomeOnZ(&enc1, &stepper3, GPIOC, GPIO_PIN_10);  // Z pin = PC10
+
 
   /* Infinite loop */
   for(;;)
@@ -802,6 +821,10 @@ void StartStepperMotorTask(void *argument)
       else if(msg.cmd == CMD_SYSTEM_OFF){
         systemOn = 0;
         // reset stepper3 state on system off
+        
+        // Return PCB Carrier home using Z as reference
+        ENCODER_HomeOnZ(&enc1, &stepper3, GPIOC, GPIO_PIN_10);
+
         s3_steps_done = 0;
         s3_waiting    = 0;
       }

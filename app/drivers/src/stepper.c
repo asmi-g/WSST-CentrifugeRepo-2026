@@ -1,11 +1,24 @@
 #include "stepper.h"
 
-void STEPPER_Init(stepper_t* motor, GPIO_TypeDef* stepPort, uint16_t stepPin) {
+void STEPPER_Init(stepper_t* motor, GPIO_TypeDef* stepPort, uint16_t stepPin, GPIO_TypeDef* dirPort,  uint16_t dirPin)
+{
     motor->stepPort = stepPort;
-    motor->stepPin = stepPin;
-    
-    // Ensure pins are reset initially
+    motor->stepPin  = stepPin;
+    motor->dirPort  = dirPort;
+    motor->dirPin   = dirPin;
+
     HAL_GPIO_WritePin(stepPort, stepPin, GPIO_PIN_RESET);
+
+    if(dirPort != NULL)
+        HAL_GPIO_WritePin(dirPort, dirPin, GPIO_PIN_RESET);
+}
+
+void STEPPER_SetDir(stepper_t* motor, uint8_t forward)
+{
+    if(motor->dirPort == NULL) return;  // silently skip if no DIR pin
+
+    HAL_GPIO_WritePin(motor->dirPort, motor->dirPin,
+                      forward ? GPIO_PIN_RESET : GPIO_PIN_SET);
 }
 
 void STEPPER_Step(stepper_t* motor, uint32_t steps, uint32_t pulse_us, uint32_t delay_us) {

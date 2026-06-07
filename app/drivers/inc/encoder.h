@@ -3,6 +3,7 @@
 
 #include "stm32f4xx_hal.h"
 #include <stdint.h>
+#include "stepper.h"  // needed for stepper_t reference
 
 typedef struct {
     TIM_HandleTypeDef *htim;
@@ -16,5 +17,6 @@ int32_t ENCODER_GetCount    (encoder_t *enc);
 float   ENCODER_GetDegrees  (encoder_t *enc);
 float   ENCODER_GetRPM      (encoder_t *enc, uint32_t delta_ms);
 void    ENCODER_WaitForIndex(encoder_t *enc, GPIO_TypeDef *zPort, uint16_t zPin);
+void    ENCODER_HomeOnZ(encoder_t *enc, stepper_t *motor, GPIO_TypeDef *zPort, uint16_t zPin);
 
 #endif
