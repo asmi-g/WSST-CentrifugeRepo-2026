@@ -67,12 +67,16 @@ Paste the copied path from above in the environment variable in .bashrc, labelle
 "$CC" --version
 "$CXX" --version
 ```
+
 ### .env
-Navigate to ``app/init`` and make a copy of the file called .env.template. Name it ``.env``. Go to where your environment variables under PATH are located (on Windows, enter the search prompt, type in "Edit the system environment variables", navigate to Environment Variables>User Variables>Path, then copy the path to your gnu toolchain binary folder. Example: ``C:\Program Files (x86)\Arm GNU Toolchain arm-none-eabi\14.3 rel1\bin``). Paste the copied path from above in the environment variable in .env, labelled ``ARM_TOOLCHAIN``. 
+Navigate to ``app/init`` and make a copy of the file called .env.template. Name it ``.env``. Go to where your environment variables under PATH are located (on Windows, enter the search prompt, type in "Edit the system environment variables", navigate to Environment Variables>User Variables>Path, then copy the path to your gnu toolchain binary folder. Example: ``C:/Program Files (x86)/Arm GNU Toolchain arm-none-eabi/14.3 rel1/bin``). Paste the copied path from above in the environment variable in .env, labelled ``ARM_TOOLCHAIN``. 
 
 Similarly, within the User Variables>Path window from above, copy the path to your openocd executable. Example: ``C:/Users/asmig/OpenOCD-20251211-0.12.0/bin/openocd.exe``. Paste the copied path from above in the environment variable in .env, labelled ``OPENOCD_PATH``. 
 
 Close the VS Code window and re-open it just to be safe.
+
+### Paths
+Make sure that the slashes in any of the paths above, are forward-slashes, or right-hand facing. We do not want backward slashes. This means, replace any slashes in the paths with `/` and **NOT** `\`.
 
 ## Initialize
 Run the environment variable initialization:
