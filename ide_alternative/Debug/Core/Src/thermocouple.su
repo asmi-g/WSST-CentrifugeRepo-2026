@@ -1,0 +1,17 @@
+../Core/Src/thermocouple.c:14:6:max31856_init	16	static
+../Core/Src/thermocouple.c:30:6:max31856_set_conversion_mode	16	static
+../Core/Src/thermocouple.c:37:6:max31856_trigger_one_shot	16	static
+../Core/Src/thermocouple.c:47:6:max31856_set_noise_filter	16	static
+../Core/Src/thermocouple.c:54:6:max31856_set_cold_junction_enable	16	static
+../Core/Src/thermocouple.c:61:6:max31856_set_thermocouple_type	16	static
+../Core/Src/thermocouple.c:68:6:max31856_set_average_samples	16	static
+../Core/Src/thermocouple.c:75:7:max31856_read_TC_temp	24	static
+../Core/Src/thermocouple.c:85:7:max31856_read_CJ_temp	24	static
+../Core/Src/thermocouple.c:93:6:max31856_set_fault_mode	16	static
+../Core/Src/thermocouple.c:100:6:max31856_set_open_circuit_fault_detection	16	static
+../Core/Src/thermocouple.c:107:6:max31856_read_fault	16	static
+../Core/Src/thermocouple.c:112:6:max31856_clear_fault_status	16	static
+../Core/Src/thermocouple.c:122:6:max31856_write_register	16	static
+../Core/Src/thermocouple.c:131:6:max31856_write_nregisters	24	static
+../Core/Src/thermocouple.c:140:9:max31856_read_register	24	static
+../Core/Src/thermocouple.c:152:6:max31856_read_nregisters	24	static

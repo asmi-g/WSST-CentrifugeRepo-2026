@@ -8,12 +8,36 @@
 Learn more about the Space Soldering software overview, located in
 ```/docs/systemOverview.md```
 
-## Install
+## CubeIDE Alternative Setup
+Install the following applications:
+* [STM32CubeMX - Ver 6.15.0](https://www.st.com/en/development-tools/stm32cubemx.html)
+* [STM32CubeIDE](https://www.st.com/en/development-tools/stm32cubeide.html)
+
+Start up STM32CubeIDE. Navigate to:
+File > STM32 Project Create/Import > Import STM32 Project > STM32CubeMX/STM32CubeIDE Project.
+
+Within Import Source field, navigate to where you cloned this repo, into the following folder:
+```WSST-CentrifugeRepo-2026/ide_alternative```
+
+Once imported, navigate to:
+Project > Build Project
+
+After its successfully built, flash your STM32 board by hitting "Run" in the IDE.
+
+When your board is flashed, open up the GUI. To do so, open a Git Bash terminal. Navigate to where you cloned this repo, into the following folder:
+```WSST-CentrifugeRepo-2026/gui/```
+
+Make sure the COM port defined in the gui.py script matches where your STM32 is connected to (check Device Manager on windows for confirmation). Then in your git bash terminal, run the python script with:
+```sh
+python gui.py
+```
+
+## Dev Environment Setup - Install
 Install the following applications:
 * [STM32CubeMX - Ver 6.15.0](https://www.st.com/en/development-tools/stm32cubemx.html)
 * [CMake - Ver 4.1.1](https://cmake.org/download/)
-* [GNU ARM Embedded Toolchain - Ver 14.3, release 1](https://developer.arm.com/downloads/-/gnu-rm)
-    * NOTE: Versions older than GCC 11 will present an issue while building/flashing STM32 code
+* [GNU ARM Embedded Toolchain - Ver 14.3, release 1](https://developer.arm.com/downloads/-/arm-gnu-toolchain-downloads#panel2a)
+    * NOTE: Versions older than GCC 11 will present an issue while building/flashing STM32 code. Select arm-gnu-toolchain-14.3.rel1-mingw-w64-x86_64-arm-none-eabi.exe.
 * [OpenOCD - Ver 20251211-0.12.0](https://gnutoolchains.com/arm-eabi/openocd/)
 * [MSYS2 - 64 Bit for Windows](https://www.msys2.org/)
 * [Putty](https://www.chiark.greenend.org.uk/~sgtatham/putty/) - not useful immediately but will use at some point
