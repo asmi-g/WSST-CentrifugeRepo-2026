@@ -10,9 +10,11 @@
       "cwd": "${workspaceFolder}/app",
       "executable": "${workspaceFolder}/app/build/stm32-multi-board.elf",
 
-      "serverpath": "${env:USERPROFILE}/OpenOCD-20251211-0.12.0/bin/openocd.exe",
-      "armToolchainPath": "${env:ProgramFiles(x86)}/Arm GNU Toolchain arm-none-eabi/14.3 rel1/bin",
+      //"serverpath": "${env:USERPROFILE}/OpenOCD-20251211-0.12.0/bin/openocd.exe",
+      //"armToolchainPath": "${env:ProgramFiles(x86)}/Arm GNU Toolchain arm-none-eabi/14.3 rel1/bin",
 
+      "serverpath": "${env:OPENOCD_PATH}",
+      "armToolchainPath": "${env:ARM_TOOLCHAIN}",
 
       "device": "STM32F411RE",
       "interface": "swd",
@@ -25,6 +27,7 @@
       "runToEntryPoint": "main",
       "svdFile": "${workspaceFolder}/app/boards/F411RE/STM32F411.svd",
 
+      "envFile": "${workspaceFolder}/app/init/.env",
       "preLaunchTask": "Build"
     }
   ]

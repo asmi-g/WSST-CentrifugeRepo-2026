@@ -7,3 +7,5 @@ app/boards/F411RE/build/*
 
 tools/bin/
 tools/firmware/ironos/out/
+
+app/init/.env
