@@ -795,7 +795,7 @@ void StartStepperMotorTask(void *argument)
   };*/
 
   static const uint16_t s3_increment_table[12] = {
-    134, 134, 133, 133, 133, 133,
+    448, 450, 450, 450, 450, 450
   };
 
   encoder_t enc1;
@@ -1010,13 +1010,13 @@ void StartServoMotorTask(void *argument)
     
     if(systemOn == 1)
     {
-        SERVO_MoveTo(linearActuator, 0);
-        osDelay(2000);
-        SERVO_MoveTo(linearActuator, 180);
+//        SERVO_MoveTo(linearActuator, 0);
+//        osDelay(2000);
+        SERVO_MoveTo(linearActuator, 70);
         osDelay(2000);
     }
     else if(systemOn == 0){
-      SERVO_MoveTo(linearActuator, 0);
+      SERVO_MoveTo(linearActuator, 70);
     }
     osDelay(10);
   }
