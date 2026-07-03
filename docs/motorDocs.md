@@ -65,7 +65,7 @@ VCC to power supply (lab supply acceptable, 12V, 1A)
 GND to power supply (lab supply acceptable, 12V, 1A)
 PUL+ to STM32 PB8
 PUL- to STM32 GND
-DIR+ to STM32 VCC
+DIR+ to STM32 PC11
 DIR- to STM32 GND
 ENA+ left floating
 ENA- left floating
@@ -87,5 +87,5 @@ EA+ to STM32 PC6
 EA- to STM32 GND
 EB+ to STM32 PC7
 EB- to STM32 GND
-EZ+ left floating
-EZ- left floating
+EZ+ to STM32 PC10
+EZ- to STM32 GND

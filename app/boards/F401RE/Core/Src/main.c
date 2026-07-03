@@ -31,6 +31,7 @@
 #include "servo.h"
 #include "stepper.h"
 #include "encoder.h"
+#include "mcp9808.h"
 
 /* USER CODE END Includes */
 
@@ -50,6 +51,8 @@
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
+I2C_HandleTypeDef hi2c3;
+
 SPI_HandleTypeDef hspi1;
 
 TIM_HandleTypeDef htim2;
@@ -148,6 +151,11 @@ osMutexId_t uartMutexHandle;
 const osMutexAttr_t uartMutex_attributes = {
   .name = "uartMutex"
 };
+/* Definitions for spiMutex */
+osMutexId_t spiMutexHandle;
+const osMutexAttr_t spiMutex_attributes = {
+  .name = "spiMutex"
+};
 /* USER CODE BEGIN PV */
 
 /* USER CODE END PV */
@@ -161,6 +169,7 @@ static void MX_TIM3_Init(void);
 static void MX_TIM4_Init(void);
 static void MX_SPI1_Init(void);
 static void MX_TIM10_Init(void);
+static void MX_I2C3_Init(void);
 void StartUartRxCmdTask(void *argument);
 void StartStepperMotorTask(void *argument);
 void StartDynamicMotorTask(void *argument);
@@ -213,6 +222,7 @@ int main(void)
   MX_TIM4_Init();
   MX_SPI1_Init();
   MX_TIM10_Init();
+  MX_I2C3_Init();
   /* USER CODE BEGIN 2 */
   uart_init(&huart2);
   /* USER CODE END 2 */
@@ -222,6 +232,9 @@ int main(void)
   /* Create the mutex(es) */
   /* creation of uartMutex */
   uartMutexHandle = osMutexNew(&uartMutex_attributes);
+
+  /* creation of spiMutex */
+  spiMutexHandle = osMutexNew(&spiMutex_attributes);
 
   /* USER CODE BEGIN RTOS_MUTEX */
   /* add mutexes, ... */
@@ -349,6 +362,40 @@ void SystemClock_Config(void)
 }
 
 /**
+  * @brief I2C3 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_I2C3_Init(void)
+{
+
+  /* USER CODE BEGIN I2C3_Init 0 */
+
+  /* USER CODE END I2C3_Init 0 */
+
+  /* USER CODE BEGIN I2C3_Init 1 */
+
+  /* USER CODE END I2C3_Init 1 */
+  hi2c3.Instance = I2C3;
+  hi2c3.Init.ClockSpeed = 100000;
+  hi2c3.Init.DutyCycle = I2C_DUTYCYCLE_2;
+  hi2c3.Init.OwnAddress1 = 0;
+  hi2c3.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
+  hi2c3.Init.DualAddressMode = I2C_DUALADDRESS_DISABLE;
+  hi2c3.Init.OwnAddress2 = 0;
+  hi2c3.Init.GeneralCallMode = I2C_GENERALCALL_DISABLE;
+  hi2c3.Init.NoStretchMode = I2C_NOSTRETCH_DISABLE;
+  if (HAL_I2C_Init(&hi2c3) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN I2C3_Init 2 */
+
+  /* USER CODE END I2C3_Init 2 */
+
+}
+
+/**
   * @brief SPI1 Initialization Function
   * @param None
   * @retval None
@@ -368,7 +415,7 @@ static void MX_SPI1_Init(void)
   hspi1.Init.Mode = SPI_MODE_MASTER;
   hspi1.Init.Direction = SPI_DIRECTION_2LINES;
   hspi1.Init.DataSize = SPI_DATASIZE_8BIT;
-  hspi1.Init.CLKPolarity = SPI_POLARITY_LOW;
+  hspi1.Init.CLKPolarity = SPI_POLARITY_HIGH;
   hspi1.Init.CLKPhase = SPI_PHASE_2EDGE;
   hspi1.Init.NSS = SPI_NSS_SOFT;
   hspi1.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_2;
@@ -638,10 +685,13 @@ static void MX_GPIO_Init(void)
   HAL_GPIO_WritePin(GPIOA, STEPPER1_GPIO_Pin|STEPPER2_GPIO_Pin|HEATER2_GPIO_Pin|HEATER1_GPIO_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOB, TC1_CS_Pin|TC2_CS_Pin|PCB_CARRIER_GPIO_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOB, TC1_CS_Pin|TC2_CS_Pin, GPIO_PIN_SET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(PCB_CARRIER_DIR_GPIO_Port, PCB_CARRIER_DIR_Pin, GPIO_PIN_RESET);
+
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(PCB_CARRIER_GPIO_GPIO_Port, PCB_CARRIER_GPIO_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pins : STEPPER1_GPIO_Pin STEPPER2_GPIO_Pin HEATER2_GPIO_Pin HEATER1_GPIO_Pin */
   GPIO_InitStruct.Pin = STEPPER1_GPIO_Pin|STEPPER2_GPIO_Pin|HEATER2_GPIO_Pin|HEATER1_GPIO_Pin;
@@ -833,7 +883,9 @@ void StartStepperMotorTask(void *argument)
     
     if(systemOn == 1)
     {
-      STEPPER_StepTwo(&stepper1, &stepper2, 10, 5, 2000); 
+      STEPPER_StepTwo(&stepper1, &stepper2, 10, 5, 2000); //1600, 10, 2000 at 24V
+      // Wire feeding motors need to expel 10mm of wire per joint
+      
       // Driver set to 8000 pulses per revolution
       #define TOTAL_INCREMENTS 12   // 12 x 30deg = 360deg
       if(s3_steps_done < TOTAL_INCREMENTS)
@@ -958,6 +1010,15 @@ void StartDataAcquisitionTask(void *argument)
   max31856_set_open_circuit_fault_detection(&therm2, CR0_OC_DETECT_ENABLED_TC_LESS_2ms);
   max31856_set_conversion_mode(&therm2, CR0_CONV_CONTINUOUS);
 
+  // MCP9808 setup
+  MCP9808_DEVICE mcp = mcp9808_load_device(0x18);
+  mcp.Configuration = 0x0000; // default: continuous conversion, no shutdown
+  mcp.Resolution = 0x03;      // 0.0625C resolution
+  mcp9808_apply_configuration(&mcp);
+
+
+  osDelay(250);
+
   /* Infinite loop */
   for(;;)
   {
@@ -971,11 +1032,24 @@ void StartDataAcquisitionTask(void *argument)
     if (therm2.sr.val) {
       /* Handle thermocouple error */
     }
+
+    osMutexAcquire(spiMutexHandle, osWaitForever);
+
     float temp1 = max31856_read_TC_temp(&therm1);
     float temp2 = max31856_read_TC_temp(&therm2);
-    //snprintf(msg, sizeof(msg), "TC1: %.2f C, TC2: %.2f C\r\n", temp1, temp2);
+    
+    osMutexRelease(spiMutexHandle);
 
-    //uart_tx(msg);
+    float boardTemp = mcp9808_get_temp_float(mcp9808_read_temperature(&mcp));
+
+
+    snprintf(msg, sizeof(msg), "TC1: %.2f C, TC2: %.2f C\r\n", temp1, temp2);
+    uart_tx(msg);
+
+    snprintf(msg, sizeof(msg), "TEMP:%.2f\r\n", boardTemp);
+    uart_tx(msg);
+
+
     osDelay(500);
   }
   /* USER CODE END StartDataAcquisitionTask */
@@ -1049,7 +1123,7 @@ void StartEncoderTask(void *argument)
     snprintf(msg, sizeof(msg), "ENC: %ld counts | %.1f deg | %.1f RPM\r\n", counts, degrees, rpm);
     uart_tx(msg);
 
-    //ENCODER_WaitForIndex(&enc1, GPIOC, GPIO_PIN_8);
+    ENCODER_WaitForIndex(&enc1, GPIOC, GPIO_PIN_8);
 
     osDelay(50);
   }
