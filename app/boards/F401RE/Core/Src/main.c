@@ -32,6 +32,7 @@
 #include "stepper.h"
 #include "encoder.h"
 #include "mcp9808.h"
+#include "hall_sensor.h"
 
 /* USER CODE END Includes */
 
@@ -59,6 +60,7 @@ TIM_HandleTypeDef htim2;
 TIM_HandleTypeDef htim3;
 TIM_HandleTypeDef htim4;
 TIM_HandleTypeDef htim10;
+TIM_HandleTypeDef htim11;
 
 UART_HandleTypeDef huart2;
 
@@ -170,6 +172,7 @@ static void MX_TIM4_Init(void);
 static void MX_SPI1_Init(void);
 static void MX_TIM10_Init(void);
 static void MX_I2C3_Init(void);
+static void MX_TIM11_Init(void);
 void StartUartRxCmdTask(void *argument);
 void StartStepperMotorTask(void *argument);
 void StartDynamicMotorTask(void *argument);
@@ -223,6 +226,7 @@ int main(void)
   MX_SPI1_Init();
   MX_TIM10_Init();
   MX_I2C3_Init();
+  MX_TIM11_Init();
   /* USER CODE BEGIN 2 */
   uart_init(&huart2);
   /* USER CODE END 2 */
@@ -632,6 +636,51 @@ static void MX_TIM10_Init(void)
 }
 
 /**
+  * @brief TIM11 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_TIM11_Init(void)
+{
+
+  /* USER CODE BEGIN TIM11_Init 0 */
+
+  /* USER CODE END TIM11_Init 0 */
+
+  TIM_IC_InitTypeDef sConfigIC = {0};
+
+  /* USER CODE BEGIN TIM11_Init 1 */
+
+  /* USER CODE END TIM11_Init 1 */
+  htim11.Instance = TIM11;
+  htim11.Init.Prescaler = 0;
+  htim11.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim11.Init.Period = 65535;
+  htim11.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  htim11.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+  if (HAL_TIM_Base_Init(&htim11) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  if (HAL_TIM_IC_Init(&htim11) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sConfigIC.ICPolarity = TIM_INPUTCHANNELPOLARITY_RISING;
+  sConfigIC.ICSelection = TIM_ICSELECTION_DIRECTTI;
+  sConfigIC.ICPrescaler = TIM_ICPSC_DIV1;
+  sConfigIC.ICFilter = 0x03;
+  if (HAL_TIM_IC_ConfigChannel(&htim11, &sConfigIC, TIM_CHANNEL_1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN TIM11_Init 2 */
+
+  /* USER CODE END TIM11_Init 2 */
+
+}
+
+/**
   * @brief USART2 Initialization Function
   * @param None
   * @retval None
@@ -844,9 +893,14 @@ void StartStepperMotorTask(void *argument)
     133, 133, 133, 133
   };*/
 
+  // static const uint16_t s3_increment_table[12] = {
+  //   134, 134, 133, 133, 133, 133,
+  // };
+
   static const uint16_t s3_increment_table[12] = {
-    134, 134, 133, 133, 133, 133,
+    448, 450, 450, 450, 450, 450
   };
+
 
   encoder_t enc1;
   ENCODER_Init(&enc1, &htim3, 4000);  // 4000 CPR from datasheet
@@ -1016,6 +1070,7 @@ void StartDataAcquisitionTask(void *argument)
   mcp.Resolution = 0x03;      // 0.0625C resolution
   mcp9808_apply_configuration(&mcp);
 
+  HallSensor_Init(&htim11);
 
   osDelay(250);
 
@@ -1033,21 +1088,26 @@ void StartDataAcquisitionTask(void *argument)
       /* Handle thermocouple error */
     }
 
+    // Thermocouples
     osMutexAcquire(spiMutexHandle, osWaitForever);
-
     float temp1 = max31856_read_TC_temp(&therm1);
     float temp2 = max31856_read_TC_temp(&therm2);
-    
     osMutexRelease(spiMutexHandle);
-
-    float boardTemp = mcp9808_get_temp_float(mcp9808_read_temperature(&mcp));
-
-
     snprintf(msg, sizeof(msg), "TC1: %.2f C, TC2: %.2f C\r\n", temp1, temp2);
     uart_tx(msg);
 
+    // External temp sensor, MCP9808
+    float boardTemp = mcp9808_get_temp_float(mcp9808_read_temperature(&mcp));
     snprintf(msg, sizeof(msg), "TEMP:%.2f\r\n", boardTemp);
     uart_tx(msg);
+
+    // BLDC Hall Sensor / speed output
+    uint32_t counts = HallSensor_GetCounts();
+    float rpm = HallSensor_GetRPM();
+    float deg = (counts % 12) * 30.0f;
+    snprintf(msg, sizeof(msg), "ENC: %ld counts | %.1f deg | %.1f RPM\r\n", counts, deg, rpm);
+    uart_tx(msg);
+
 
 
     osDelay(500);
@@ -1084,13 +1144,16 @@ void StartServoMotorTask(void *argument)
     
     if(systemOn == 1)
     {
-        SERVO_MoveTo(linearActuator, 0);
-        osDelay(2000);
-        SERVO_MoveTo(linearActuator, 180);
-        osDelay(2000);
+      // SERVO_MoveTo(linearActuator, 0);
+      // osDelay(2000);
+      // SERVO_MoveTo(linearActuator, 180);
+      // osDelay(2000);
+      SERVO_MoveTo(linearActuator, 70);
+      osDelay(2000);
     }
     else if(systemOn == 0){
-      SERVO_MoveTo(linearActuator, 0);
+      // SERVO_MoveTo(linearActuator, 0);
+      SERVO_MoveTo(linearActuator, 70);
     }
     osDelay(10);
   }
@@ -1120,8 +1183,8 @@ void StartEncoderTask(void *argument)
     float   degrees = ENCODER_GetDegrees(&enc1);
     float   rpm     = ENCODER_GetRPM(&enc1, 50); // matches osDelay below
 
-    snprintf(msg, sizeof(msg), "ENC: %ld counts | %.1f deg | %.1f RPM\r\n", counts, degrees, rpm);
-    uart_tx(msg);
+    // snprintf(msg, sizeof(msg), "ENC: %ld counts | %.1f deg | %.1f RPM\r\n", counts, degrees, rpm);
+    // uart_tx(msg);
 
     ENCODER_WaitForIndex(&enc1, GPIOC, GPIO_PIN_8);
 

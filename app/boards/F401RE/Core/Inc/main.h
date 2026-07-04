@@ -85,6 +85,8 @@ void Error_Handler(void);
 #define SERVO_PWM_GPIO_Port GPIOB
 #define PCB_CARRIER_GPIO_Pin GPIO_PIN_8
 #define PCB_CARRIER_GPIO_GPIO_Port GPIOB
+#define BLDC_HallSensor_Output_Pin GPIO_PIN_9
+#define BLDC_HallSensor_Output_GPIO_Port GPIOB
 
 /* USER CODE BEGIN Private defines */
 typedef enum

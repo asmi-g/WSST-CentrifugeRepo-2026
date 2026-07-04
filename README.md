@@ -132,3 +132,58 @@ To clean a build, run the following from the app directory:
 ```sh
 rm -rf build/
 ```
+
+## Synching app/ and ide_alternative/
+### app/ and ide_alternative/ file mapping
+
+```text
+├── app
+├── ide_alternative
+└── README.md
+
+
+└── app
+   ├── boards/
+   │   └── F401RE/
+   │       ├── Core/   
+   |       |   ├──  Inc/ 
+   |       |   |    └── main.h
+   │       |   └──  Src/     
+   |       |        └── main.c   
+   │       └── F401RE.ioc       
+   └── drivers/ 
+        ├── inc/ 
+        |    └── all custom driver header files     
+        └── src/     
+             └── all custom driver source files    
+└── ide_alternative
+    ├── Core/               
+    |    ├── Inc/ 
+    |    |    ├── main.h  
+    |    |    └── all custom driver header files           
+    |    └── Src/ 
+    |         ├── main.c   
+    |         └── all custom driver source files  
+    └── ide_alternative.ioc     
+
+```
+
+
+### Changes made in app/ first
+#### If Changes Are Made to a .ioc file in app/
+1. Delete the contents of ide_alternative/
+2. Copy over the .ioc file from app/boards/F401RE into ide_alternative/
+3. Rename the .ioc file from F401RE.ioc to ide_alternative.ioc
+4. Open the renamed .ioc file in STM32 CubeMX, navigate to Project Manager
+5. Change Toolchain/IDE dropdown setting to STM32CubeIDE
+6. Check off the "Generate Under Root" box
+7. Click the Generate Code button, wait for code to generate in ide_alternative/ folder
+8. After the code is generated, copy over all of the files from app/drivers/inc to ide_alternative/Core/Inc
+9. Copy over all of the files from app/drivers/src to ide_alternative/Core/Src
+10. Copy all of the contents from main.c as well as main.h in the same manner as above, from app/boards/F401RE/Core/Inc/main.h and app/boards/F401RE/Core/Src/main.c into ide_alternative/Core/Inc and ide_alternative/Core/Src, respectively
+
+#### If Changes Are Made to a .c/.h file in app/
+Simply replace the corresponding driver/code file in ide_alternative/Core/
+
+### Changes made in ide_alternative/ first
+Do minimal development when possible in ide_alternative/ . If changes are made in ide_alternative that need to be synced, you may directly replace the affected lines/sections in app/ , referring to the file mapping above.

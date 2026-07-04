@@ -1,5 +1,0 @@
-../Core/Src/stepper.c:3:6:STEPPER_Init	24	static
-../Core/Src/stepper.c:16:6:STEPPER_SetDir	16	static
-../Core/Src/stepper.c:24:6:STEPPER_Step	32	static
-../Core/Src/stepper.c:38:6:STEPPER_StepTwo	32	static
-../Core/Src/stepper.c:61:6:STEPPER_StepThree	32	static

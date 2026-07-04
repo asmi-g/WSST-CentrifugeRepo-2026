@@ -1,7 +1,0 @@
-../Core/Src/encoder.c:3:6:ENCODER_Init	1
-../Core/Src/encoder.c:13:6:ENCODER_Zero	1
-../Core/Src/encoder.c:18:9:ENCODER_GetCount	1
-../Core/Src/encoder.c:23:7:ENCODER_GetDegrees	1
-../Core/Src/encoder.c:30:7:ENCODER_GetRPM	1
-../Core/Src/encoder.c:42:6:ENCODER_WaitForIndex	3
-../Core/Src/encoder.c:50:6:ENCODER_HomeOnZ	2

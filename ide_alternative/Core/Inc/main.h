@@ -73,9 +73,9 @@ void Error_Handler(void);
 #define PCB_CARRIER_EA__GPIO_Port GPIOC
 #define PCB_CARRIER_EB__Pin GPIO_PIN_7
 #define PCB_CARRIER_EB__GPIO_Port GPIOC
-#define HEATER2_GPIO_Pin GPIO_PIN_8
+#define HEATER2_GPIO_Pin GPIO_PIN_11
 #define HEATER2_GPIO_GPIO_Port GPIOA
-#define HEATER1_GPIO_Pin GPIO_PIN_9
+#define HEATER1_GPIO_Pin GPIO_PIN_12
 #define HEATER1_GPIO_GPIO_Port GPIOA
 #define PCB_CARRIER_Z__Pin GPIO_PIN_10
 #define PCB_CARRIER_Z__GPIO_Port GPIOC
@@ -85,6 +85,8 @@ void Error_Handler(void);
 #define SERVO_PWM_GPIO_Port GPIOB
 #define PCB_CARRIER_GPIO_Pin GPIO_PIN_8
 #define PCB_CARRIER_GPIO_GPIO_Port GPIOB
+#define BLDC_HallSensor_Output_Pin GPIO_PIN_9
+#define BLDC_HallSensor_Output_GPIO_Port GPIOB
 
 /* USER CODE BEGIN Private defines */
 typedef enum
@@ -130,13 +132,13 @@ typedef struct
 #define SPI_SCK_GPIO_Port GPIOB
 #define SPI_SCK_Pin GPIO_PIN_3
 
-// At PA9
+// At PA11
 #define HEATER1_GPIO_PORT GPIOA
-#define HEATER1_PIN GPIO_PIN_9
+#define HEATER1_PIN GPIO_PIN_11
 
-// At PA8
+// At PA12
 #define HEATER2_GPIO_PORT GPIOA
-#define HEATER2_PIN GPIO_PIN_8
+#define HEATER2_PIN GPIO_PIN_12
 
 // At PA5
 #define DYNAMIC_MOTOR_PWM_TIMER &htim2

@@ -1,4 +1,0 @@
-../Core/Src/pwm.c:3:17:clamp_u32	24	static
-../Core/Src/pwm.c:10:19:pwm_init	24	static
-../Core/Src/pwm.c:21:19:pwm_start	16	static
-../Core/Src/pwm.c:27:19:pwm_set	40	static
