@@ -9,3 +9,5 @@ tools/bin/
 tools/firmware/ironos/out/
 
 app/init/.env
+
+gui/data/
