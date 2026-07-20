@@ -99,7 +99,10 @@ typedef enum
     CMD_HEATER_ON,
     CMD_HEATER_OFF,
 
-    CMD_SET_PWM
+    CMD_SET_PWM,
+
+    CMD_TIP_CLEAN,
+    CMD_SERVO_RETRACT
 
 } cmd_t;
 

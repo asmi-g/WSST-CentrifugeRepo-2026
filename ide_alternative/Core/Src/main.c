@@ -22,6 +22,18 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include <string.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include "uart.h"
+#include "pwm.h"
+#include "thermocouple.h"
+#include "servo.h"
+#include "stepper.h"
+#include "encoder.h"
+#include "mcp9808.h"
+#include "hall_sensor.h"
+#include "tip_cleaner.h"
 
 /* USER CODE END Includes */
 
@@ -32,7 +44,9 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-
+#define linearActuator  0
+#define SERVO_ACTION_COMPLETE_FLAG  (1U << 0)
+#define CARRIER_SEQUENCE_DIRECTION  0U
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -217,7 +231,6 @@ int main(void)
   MX_I2C3_Init();
   MX_TIM11_Init();
   /* USER CODE BEGIN 2 */
-
   /* USER CODE END 2 */
 
   /* Init scheduler */
@@ -765,6 +778,34 @@ static void MX_GPIO_Init(void)
 
 /* USER CODE BEGIN 4 */
 
+static uint8_t is_tip_cleaning_entry(uint8_t completed_entry)
+{
+  return (completed_entry != 0U) && ((completed_entry % 3U) == 0U);
+}
+
+static osStatus_t request_servo_action(cmd_t command)
+{
+  cmd_msg_t servo_msg = {
+    .cmd = command,
+    .value = 0U
+  };
+
+  (void)osThreadFlagsClear(SERVO_ACTION_COMPLETE_FLAG);
+
+  if(osMessageQueuePut(servoMotorQueueHandle, &servo_msg, 0U, osWaitForever) != osOK)
+  {
+    return osError;
+  }
+
+  uint32_t flags = osThreadFlagsWait(
+    SERVO_ACTION_COMPLETE_FLAG,
+    osFlagsWaitAny,
+    osWaitForever
+  );
+
+  return ((flags & SERVO_ACTION_COMPLETE_FLAG) != 0U) ? osOK : osError;
+}
+
 /* USER CODE END 4 */
 
 /* USER CODE BEGIN Header_StartUartRxCmdTask */
@@ -779,6 +820,9 @@ void StartUartRxCmdTask(void *argument)
   /* USER CODE BEGIN 5 */
   uart_message_t rx_msg;
   cmd_msg_t cmd_msg;
+
+  // Start interrupt-driven reception only after the RTOS queue exists.
+  uart_init(&huart2);
 
   /* Infinite loop */
   for(;;)
@@ -822,6 +866,14 @@ void StartUartRxCmdTask(void *argument)
         cmd_msg.cmd = CMD_HEATER_OFF;
 
         osMessageQueuePut(heaterQueueHandle, &cmd_msg, 0, 0);
+      }
+
+      /* MANUAL TIP RETRACTION */
+      else if(strcmp(rx_msg.command, "RETRACT TIPS") == 0)
+      {
+        cmd_msg.cmd = CMD_SERVO_RETRACT;
+
+        osMessageQueuePut(servoMotorQueueHandle, &cmd_msg, 0, 0);
       }
 
       /* MOTOR SPEED */
@@ -869,6 +921,7 @@ void StartStepperMotorTask(void *argument)
   stepper_t stepper3;
 
   uint8_t systemOn = 0;
+  uint8_t at_cleaning_station = 0;
 
   uint8_t  s3_steps_done = 0;       // how many 30-degree increments completed
   uint32_t s3_wait_start = 0;       // timestamp of when wait began
@@ -884,8 +937,13 @@ void StartStepperMotorTask(void *argument)
   //   134, 134, 133, 133, 133, 133,
   // };
 
-  static const uint16_t s3_increment_table[12] = {
-    448, 450, 450, 450, 450, 450
+  static const uint16_t s3_increment_table[] = {
+    448, // PCB pair 1
+    450, // PCB pair 2
+    450, // Cleaner pair 1
+    450, // PCB pair 3
+    450, // PCB pair 4
+    450  // Cleaner pair 2
   };
 
 
@@ -898,7 +956,9 @@ void StartStepperMotorTask(void *argument)
   STEPPER_Init(&stepper2, GPIOA, GPIO_PIN_7, NULL, 0);
   STEPPER_Init(&stepper3, GPIOB, GPIO_PIN_8, GPIOC, GPIO_PIN_11);
 
-  ENCODER_HomeOnZ(&enc1, &stepper3, GPIOC, GPIO_PIN_10);  // Z pin = PC10
+  // The carrier is manually aligned at cleaner station 4 before startup.
+  // Retract the tips, but do not move the carrier until SYSTEM ON is received.
+  (void)request_servo_action(CMD_SERVO_RETRACT);
 
 
   /* Infinite loop */
@@ -907,36 +967,51 @@ void StartStepperMotorTask(void *argument)
     if(osMessageQueueGet(stepperMotorQueueHandle, &msg, NULL, 0) == osOK)
     {
       if(msg.cmd == CMD_SYSTEM_ON){
+        // Run the six-entry sequence opposite to its previous travel direction.
+        STEPPER_SetDir(&stepper3, CARRIER_SEQUENCE_DIRECTION);
         systemOn = 1;
       }
       else if(msg.cmd == CMD_SYSTEM_OFF){
         systemOn = 0;
-        // reset stepper3 state on system off
-        
-        // Return PCB Carrier home using Z as reference
-        ENCODER_HomeOnZ(&enc1, &stepper3, GPIOC, GPIO_PIN_10);
 
-        s3_steps_done = 0;
+        // Stop at the current carrier entry and fully retract the tips.
+        (void)request_servo_action(CMD_SERVO_RETRACT);
+
         s3_waiting    = 0;
+        at_cleaning_station = 0;
       }
 
     }
     
     if(systemOn == 1)
     {
-      STEPPER_StepTwo(&stepper1, &stepper2, 10, 5, 2000); //1600, 10, 2000 at 24V
-      // Wire feeding motors need to expel 10mm of wire per joint
+      // Wire feeding remains disabled until it is coordinated with PCB contact.
       
       // Driver set to 8000 pulses per revolution
-      #define TOTAL_INCREMENTS 12   // 12 x 30deg = 360deg
+      #define TOTAL_INCREMENTS (sizeof(s3_increment_table) / sizeof(s3_increment_table[0]))
       if(s3_steps_done < TOTAL_INCREMENTS)
       {
         if(!s3_waiting)
         {
           STEPPER_Step(&stepper3, s3_increment_table[s3_steps_done], 5, 2000);
           s3_steps_done++;
+          at_cleaning_station = is_tip_cleaning_entry(s3_steps_done);
           s3_waiting    = 1;
           s3_wait_start = osKernelGetTickCount();
+
+          if(at_cleaning_station != 0)
+          {
+            if(request_servo_action(CMD_TIP_CLEAN) != osOK)
+            {
+              systemOn = 0;
+            }
+          }
+
+          if(s3_steps_done >= TOTAL_INCREMENTS)
+          {
+            (void)request_servo_action(CMD_SERVO_RETRACT);
+            systemOn = 0;
+          }
         }
         else
         {
@@ -1113,36 +1188,37 @@ void StartServoMotorTask(void *argument)
 {
   /* USER CODE BEGIN StartServoMotorTask */
   cmd_msg_t msg;
-  uint8_t systemOn = 0;
 
   SERVO_Init(linearActuator);
+  SERVO_MoveTo(linearActuator, TIP_RETRACTED_ANGLE);
+
   /* Infinite loop */
   for(;;)
   {
-    // Servo control for linear actuator, alternates between 0 and 180 degrees
-    
-  if(osMessageQueueGet(servoMotorQueueHandle, &msg, NULL, 0) == osOK)
+    if(osMessageQueueGet(servoMotorQueueHandle, &msg, NULL, osWaitForever) == osOK)
     {
-      if(msg.cmd == CMD_SYSTEM_ON)
-        systemOn = 1;
-      else if(msg.cmd == CMD_SYSTEM_OFF)
-        systemOn = 0;
+      if((msg.cmd == CMD_SYSTEM_ON) || (msg.cmd == CMD_SYSTEM_OFF))
+      {
+        SERVO_MoveTo(linearActuator, TIP_RETRACTED_ANGLE);
+      }
+      else if(msg.cmd == CMD_TIP_CLEAN)
+      {
+        TIP_CLEANER_Run(linearActuator);
+        (void)osThreadFlagsSet(
+          StepperMotorControlTaskHandle,
+          SERVO_ACTION_COMPLETE_FLAG
+        );
+      }
+      else if(msg.cmd == CMD_SERVO_RETRACT)
+      {
+        SERVO_MoveTo(linearActuator, TIP_RETRACTED_ANGLE);
+        osDelay(TIP_CLEAN_DWELL_MS);
+        (void)osThreadFlagsSet(
+          StepperMotorControlTaskHandle,
+          SERVO_ACTION_COMPLETE_FLAG
+        );
+      }
     }
-    
-    if(systemOn == 1)
-    {
-      // SERVO_MoveTo(linearActuator, 0);
-      // osDelay(2000);
-      // SERVO_MoveTo(linearActuator, 180);
-      // osDelay(2000);
-      SERVO_MoveTo(linearActuator, 70);
-      osDelay(2000);
-    }
-    else if(systemOn == 0){
-      // SERVO_MoveTo(linearActuator, 0);
-      SERVO_MoveTo(linearActuator, 70);
-    }
-    osDelay(10);
   }
   /* USER CODE END StartServoMotorTask */
 }
