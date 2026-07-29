@@ -13,12 +13,11 @@ void TIP_CLEANER_Run(uint16_t servo_instance)
         if (stroke + 1U < TIP_CLEAN_STROKE_COUNT)
         {
             SERVO_MoveTo(servo_instance, TIP_CLEAN_RETRACT_ANGLE);
+            osDelay(TIP_CLEAN_DWELL_MS);
         }
-        else
-        {
-            SERVO_MoveTo(servo_instance, TIP_RETRACTED_ANGLE);
-        }
-
-        osDelay(TIP_CLEAN_DWELL_MS);
     }
+
+    /* Always finish fully retracted so the carrier can rotate safely. */
+    SERVO_MoveTo(servo_instance, TIP_RETRACTED_ANGLE);
+    osDelay(TIP_SERVO_MOVE_MS);
 }

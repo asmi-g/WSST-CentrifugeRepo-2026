@@ -101,7 +101,10 @@ typedef enum
 
     CMD_SET_PWM,
 
+    CMD_SOLDER,
+    CMD_NEXT_POSITION,
     CMD_TIP_CLEAN,
+    CMD_SERVO_SOLDER,
     CMD_SERVO_RETRACT
 
 } cmd_t;

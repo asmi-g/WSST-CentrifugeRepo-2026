@@ -4,10 +4,13 @@
 
 #include "stm32f4xx_hal.h"
 
+#define HALL_SENSOR_PULSES_PER_REV 90U
+
 void    HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim);
 void     HallSensor_Init(TIM_HandleTypeDef *htim);
 float    HallSensor_GetRPM(void);
 uint32_t HallSensor_GetCounts(void);
+float    HallSensor_CountsToDegrees(uint32_t counts);
 
 #endif
 

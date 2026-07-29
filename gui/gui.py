@@ -104,10 +104,13 @@ class UARTGui(QWidget):
         layout.addWidget(QLabel("Commands:"))
         quick_btn_layout = QHBoxLayout()
         quick_commands = [
-            "SYSTEM ON",
-            "SYSTEM OFF",
+            # "SYSTEM ON",   # Re-enable only if the automatic sequence returns.
+            # "SYSTEM OFF",  # Re-enable only if the automatic sequence returns.
             "HEATER ON",
             "HEATER OFF",
+            "SOLDER",
+            "NEXT POSITION",
+            "CLEAN",
             # "RETRACT TIPS",  # Re-enable when manual retraction is needed.
         ]
         for label in quick_commands:

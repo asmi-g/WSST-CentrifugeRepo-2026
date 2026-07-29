@@ -7,8 +7,6 @@ static volatile uint32_t pulseCount = 0;
 static volatile uint8_t  firstCapture = 1;
 static volatile uint32_t lastCaptureTick = 0; // HAL_GetTick() only used for stall detection, not RPM math
 
-// #define PULSES_PER_REV 12.0f
-#define PULSES_PER_REV 90.0f
 #define TIM11_TICK_HZ   100000UL
 
 void HallSensor_Init(TIM_HandleTypeDef *htim)
@@ -19,6 +17,11 @@ void HallSensor_Init(TIM_HandleTypeDef *htim)
 
 uint32_t HallSensor_GetCounts(void) { return pulseCount; }
 
+float HallSensor_CountsToDegrees(uint32_t counts)
+{
+    return (float)(counts % HALL_SENSOR_PULSES_PER_REV)
+         * (360.0f / (float)HALL_SENSOR_PULSES_PER_REV);
+}
 
 float HallSensor_GetRPM(void)
 {
@@ -26,7 +29,7 @@ float HallSensor_GetRPM(void)
     if (periodTicks == 0) return 0.0f;
 
     float period_s = (float)periodTicks / (float)TIM11_TICK_HZ;
-    float raw_rpm = 60.0f / (period_s * PULSES_PER_REV);
+    float raw_rpm = 60.0f / (period_s * (float)HALL_SENSOR_PULSES_PER_REV);
     return raw_rpm;
 }
 
