@@ -3467,7 +3467,7 @@ void StartStepperMotorTask(void *argument)
  8001c9a:	f107 000c 	add.w	r0, r7, #12
  8001c9e:	f44f 63fa 	mov.w	r3, #2000	@ 0x7d0
  8001ca2:	2205      	movs	r2, #5
- 8001ca4:	f44f 71d7 	mov.w	r1, #430	@ 0x1ae
+ 8001ca4:	f240 11bd 	movw	r1, #445	@ 0x1bd
  8001ca8:	f000 ffa4 	bl	8002bf4 <STEPPER_Step>
  8001cac:	e7bf      	b.n	8001c2e <StartStepperMotorTask+0x42>
             CARRIER_STEP_DELAY_US
@@ -8105,7 +8105,7 @@ void WIRE_FEEDER_Run(stepper_t *feeder_1, stepper_t *feeder_2)
  8003a4a:	f44f 63fa 	mov.w	r3, #2000	@ 0x7d0
  8003a4e:	9300      	str	r3, [sp, #0]
  8003a50:	2305      	movs	r3, #5
- 8003a52:	f44f 72c8 	mov.w	r2, #400	@ 0x190
+ 8003a52:	f44f 72e1 	mov.w	r2, #450	@ 0x1c2
  8003a56:	6839      	ldr	r1, [r7, #0]
  8003a58:	6878      	ldr	r0, [r7, #4]
  8003a5a:	f7ff f91d 	bl	8002c98 <STEPPER_StepTwo>

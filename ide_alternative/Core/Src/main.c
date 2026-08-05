@@ -48,7 +48,7 @@
 #define linearActuator  0
 #define SERVO_ACTION_COMPLETE_FLAG  (1U << 0)
 #define CARRIER_SEQUENCE_DIRECTION  0U
-#define CARRIER_POSITION_STEPS       430U
+#define CARRIER_POSITION_STEPS       445U
 #define CARRIER_STEP_PULSE_US          5U
 #define CARRIER_STEP_DELAY_US        2000U
 /* USER CODE END PD */
