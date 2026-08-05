@@ -1,0 +1,5 @@
+../Core/Src/hall_sensor.c:12:6:HallSensor_Init	16	static
+../Core/Src/hall_sensor.c:18:10:HallSensor_GetCounts	4	static
+../Core/Src/hall_sensor.c:20:7:HallSensor_CountsToDegrees	16	static
+../Core/Src/hall_sensor.c:26:7:HallSensor_GetRPM	16	static
+../Core/Src/hall_sensor.c:36:6:HAL_TIM_IC_CaptureCallback	24	static

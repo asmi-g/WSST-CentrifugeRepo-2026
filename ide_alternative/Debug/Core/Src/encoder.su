@@ -1,0 +1,7 @@
+../Core/Src/encoder.c:3:6:ENCODER_Init	24	static
+../Core/Src/encoder.c:13:6:ENCODER_Zero	16	static
+../Core/Src/encoder.c:18:9:ENCODER_GetCount	16	static
+../Core/Src/encoder.c:23:7:ENCODER_GetDegrees	24	static
+../Core/Src/encoder.c:30:7:ENCODER_GetRPM	24	static
+../Core/Src/encoder.c:42:6:ENCODER_WaitForIndex	24	static
+../Core/Src/encoder.c:50:6:ENCODER_HomeOnZ	24	static

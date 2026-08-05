@@ -1,0 +1,15 @@
+../Core/Inc/mbtwi.h:15:20:send_twi_byte	24	static
+../Core/Inc/mbtwi.h:20:23:read_twi_int16	32	static
+../Core/Inc/mbtwi.h:26:22:read_twi_int8	32	static
+../Core/Inc/mbtwi.h:32:20:send_twi_bin_data	24	static
+../Core/Src/mcp9808.c:30:24:mcp9808_get_temp_int	16	static
+../Core/Src/mcp9808.c:43:24:mcp9808_get_temp_float	16	static
+../Core/Src/mcp9808.c:50:16:mcp9808_load_device	48	static
+../Core/Src/mcp9808.c:74:6:mcp9808_reset_interrupts	16	static
+../Core/Src/mcp9808.c:80:16:mcp9808_apply_configuration	24	static
+../Core/Src/mcp9808.c:104:6:mcp9808_set_temperature	16	static
+../Core/Src/mcp9808.c:112:16:mcp9808_apply_temperature_configuration	24	static
+../Core/Src/mcp9808.c:131:16:mcp9808_write_and_verify_int16	24	static
+../Core/Src/mcp9808.c:145:16:mcp9808_write_and_verify_int8	32	static
+../Core/Src/mcp9808.c:158:17:mcp9808_read_temperature	16	static
+../Core/Src/mcp9808.c:164:6:mcp9808_set_is_shutdown	16	static
