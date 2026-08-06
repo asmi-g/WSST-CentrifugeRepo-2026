@@ -48,7 +48,8 @@
 #define linearActuator  0
 #define SERVO_ACTION_COMPLETE_FLAG  (1U << 0)
 #define CARRIER_SEQUENCE_DIRECTION  0U
-#define CARRIER_POSITION_STEPS       445U
+#define CARRIER_POSITION_STEPS       445U //445 is for PCB to PCB
+#define CARRIER2CARRIER_POSITION_STEPS 435U //435 is for Carrier to Carrier (one half to another half)
 #define CARRIER_STEP_PULSE_US          5U
 #define CARRIER_STEP_DELAY_US        2000U
 /* USER CODE END PD */
@@ -885,6 +886,13 @@ void StartUartRxCmdTask(void *argument)
           printf("Physical action queue full; NEXT POSITION not accepted.\n");
         }
       }
+      else if(strcmp(rx_msg.command, "NEXT CARRIER POSITION") == 0)
+      {
+        if(queue_physical_action(CMD_NEXT_CARRIER_POSITION) != osOK)
+        {
+          printf("Physical action queue full; NEXT CARRIER POSITION not accepted.\n");
+        }
+      }
 
       else if(strcmp(rx_msg.command, "CLEAN") == 0)
       {
@@ -982,6 +990,20 @@ void StartStepperMotorTask(void *argument)
           );
         }
       }
+      else if(msg.cmd == CMD_NEXT_CARRIER_POSITION)
+            {
+              // Retraction must complete before the carrier is allowed to move.
+              if(request_servo_action(CMD_SERVO_RETRACT) == osOK)
+              {
+                STEPPER_SetDir(&stepper3, CARRIER_SEQUENCE_DIRECTION);
+                STEPPER_Step(
+                  &stepper3,
+                  CARRIER2CARRIER_POSITION_STEPS,
+                  CARRIER_STEP_PULSE_US,
+                  CARRIER_STEP_DELAY_US
+                );
+              }
+            }
 
       else if(msg.cmd == CMD_TIP_CLEAN)
       {
