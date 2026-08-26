@@ -48,9 +48,13 @@
 #define linearActuator  0
 #define SERVO_ACTION_COMPLETE_FLAG  (1U << 0)
 #define CARRIER_SEQUENCE_DIRECTION  0U
-#define CARRIER_POSITION_STEPS       450U
+#define CARRIER_POSITION_STEPS       445U //445 is for PCB to PCB
+#define CARRIER2CARRIER_POSITION_STEPS 440U //435 is for Carrier to Carrier (one half to another half)
 #define CARRIER_STEP_PULSE_US          5U
 #define CARRIER_STEP_DELAY_US        2000U
+#define SOLDER2MOVE_DELAY_MS		1500U
+#define MOVE2SOLDER_DELAY_MS		1000U
+#define IRON_HEAT_DELAY_MS    10000 //10 seconds for iron to heat up
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -870,38 +874,52 @@ void StartUartRxCmdTask(void *argument)
       }
 
       /* PHYSICAL ACTIONS */
-      else if(strcmp(rx_msg.command, "SOLDER") == 0)
-      {
-        if(queue_physical_action(CMD_SOLDER) != osOK)
-        {
-          printf("Physical action queue full; SOLDER not accepted.\n");
-        }
-      }
+      else if(strcmp(rx_msg.command, "QUARTER MOVE") == 0)
+		{
+		  if(queue_physical_action(CMD_QUARTER_MOVE) != osOK)
+		  {
+			printf("Physical action queue full; QUARTER MOVE not accepted.\n");
+		  }
+		}
+//      else if(strcmp(rx_msg.command, "SOLDER") == 0)
+//      {
+//        if(queue_physical_action(CMD_SOLDER) != osOK)
+//        {
+//          printf("Physical action queue full; SOLDER not accepted.\n");
+//        }
+//      }
 
-      else if(strcmp(rx_msg.command, "NEXT POSITION") == 0)
-      {
-        if(queue_physical_action(CMD_NEXT_POSITION) != osOK)
-        {
-          printf("Physical action queue full; NEXT POSITION not accepted.\n");
-        }
-      }
+//      else if(strcmp(rx_msg.command, "NEXT POSITION") == 0)
+//      {
+//        if(queue_physical_action(CMD_NEXT_POSITION) != osOK)
+//        {
+//          printf("Physical action queue full; NEXT POSITION not accepted.\n");
+//        }
+//      }
+//      else if(strcmp(rx_msg.command, "NEXT CARRIER POSITION") == 0)
+//      {
+//        if(queue_physical_action(CMD_NEXT_CARRIER_POSITION) != osOK)
+//        {
+//          printf("Physical action queue full; NEXT CARRIER POSITION not accepted.\n");
+//        }
+//      }
 
-      else if(strcmp(rx_msg.command, "CLEAN") == 0)
-      {
-        if(queue_physical_action(CMD_TIP_CLEAN) != osOK)
-        {
-          printf("Physical action queue full; CLEAN not accepted.\n");
-        }
-      }
+//      else if(strcmp(rx_msg.command, "CLEAN") == 0)
+//      {
+//        if(queue_physical_action(CMD_TIP_CLEAN) != osOK)
+//        {
+//          printf("Physical action queue full; CLEAN not accepted.\n");
+//        }
+//      }
 
       /* Hidden safety command; its GUI button remains commented out. */
-      else if(strcmp(rx_msg.command, "RETRACT TIPS") == 0)
-      {
-        if(queue_physical_action(CMD_SERVO_RETRACT) != osOK)
-        {
-          printf("Physical action queue full; RETRACT TIPS not accepted.\n");
-        }
-      }
+//      else if(strcmp(rx_msg.command, "RETRACT TIPS") == 0)
+//      {
+//        if(queue_physical_action(CMD_SERVO_RETRACT) != osOK)
+//        {
+//          printf("Physical action queue full; RETRACT TIPS not accepted.\n");
+//        }
+//      }
 
       /* MOTOR SPEED */
 
@@ -956,46 +974,113 @@ void StartStepperMotorTask(void *argument)
   {
     if(osMessageQueueGet(stepperMotorQueueHandle, &msg, NULL, osWaitForever) == osOK)
     {
-      if(msg.cmd == CMD_SOLDER)
-      {
-        if(request_servo_action(CMD_SERVO_SOLDER) == osOK)
-        {
-          WIRE_FEEDER_Run(&stepper1, &stepper2);
-          osDelay(TIP_SOLDER_DWELL_MS);
-        }
+    	//Command for doing (Solder, Retract, Move) x2, then Clean, Retract, Move
+    	if (msg.cmd == CMD_QUARTER_MOVE)
+    	{
+    		//Solder, Retract, Move all 2 times
+	    	// Needs around 10s to properly heat up
+	        HAL_GPIO_WritePin(HEATER1_GPIO_PORT, HEATER1_PIN, GPIO_PIN_SET);
+	        HAL_GPIO_WritePin(HEATER2_GPIO_PORT, HEATER2_PIN, GPIO_PIN_SET);
+	        osDelay(IRON_HEAT_DELAY_MS);
 
-        // Always finish a solder request at the safe, fully retracted angle.
-        (void)request_servo_action(CMD_SERVO_RETRACT);
-      }
+    	    for (int i = 0; i < 2; i++)
+    	    {
 
-      else if(msg.cmd == CMD_NEXT_POSITION)
-      {
-        // Retraction must complete before the carrier is allowed to move.
-        if(request_servo_action(CMD_SERVO_RETRACT) == osOK)
-        {
-          STEPPER_SetDir(&stepper3, CARRIER_SEQUENCE_DIRECTION);
-          STEPPER_Step(
-            &stepper3,
-            CARRIER_POSITION_STEPS,
-            CARRIER_STEP_PULSE_US,
-            CARRIER_STEP_DELAY_US
-          );
-        }
-      }
+    	    	//once iron is hitting pcb, solder
+    	        if(request_servo_action(CMD_SERVO_SOLDER) == osOK)
+    	        {
+    	            WIRE_FEEDER_Run(&stepper1, &stepper2);
+    	            osDelay(TIP_SOLDER_DWELL_MS);
+    	        }
 
-      else if(msg.cmd == CMD_TIP_CLEAN)
-      {
-        if(request_servo_action(CMD_TIP_CLEAN) == osOK)
-        {
-          // Enforce the full 70-degree safety retraction after all three strokes.
-          (void)request_servo_action(CMD_SERVO_RETRACT);
-        }
-      }
+    	        //once iron is fully retracted, move
+    	        if(request_servo_action(CMD_SERVO_RETRACT) == osOK)
+    	        {
+    	            STEPPER_SetDir(&stepper3, CARRIER_SEQUENCE_DIRECTION);
+    	            STEPPER_Step(
+    	                &stepper3,
+    	                CARRIER_POSITION_STEPS,
+    	                CARRIER_STEP_PULSE_US,
+    	                CARRIER_STEP_DELAY_US
+    	            );
+    	        }
+    	    }
 
-      else if(msg.cmd == CMD_SERVO_RETRACT)
-      {
-        (void)request_servo_action(CMD_SERVO_RETRACT);
-      }
+	        HAL_GPIO_WritePin(HEATER1_GPIO_PORT, HEATER1_PIN, GPIO_PIN_RESET);
+	        HAL_GPIO_WritePin(HEATER2_GPIO_PORT, HEATER2_PIN, GPIO_PIN_RESET);
+
+
+    	    // Clean, retract, move
+    	    //once cleaning is done
+    	    if(request_servo_action(CMD_TIP_CLEAN) == osOK)
+    	    {
+    	    	//once iron is fully retracted, move
+    	        if(request_servo_action(CMD_SERVO_RETRACT) == osOK)
+    	        {
+    	            STEPPER_SetDir(&stepper3, CARRIER_SEQUENCE_DIRECTION);
+    	            STEPPER_Step(
+    	                &stepper3,
+						CARRIER2CARRIER_POSITION_STEPS,
+    	                CARRIER_STEP_PULSE_US,
+    	                CARRIER_STEP_DELAY_US
+    	            );
+    	        }
+    	    }
+    	}
+//      if(msg.cmd == CMD_SOLDER)
+//      {
+//        if(request_servo_action(CMD_SERVO_SOLDER) == osOK)
+//        {
+//          WIRE_FEEDER_Run(&stepper1, &stepper2);
+//          osDelay(TIP_SOLDER_DWELL_MS);
+//        }
+//
+//        // Always finish a solder request at the safe, fully retracted angle.
+//        (void)request_servo_action(CMD_SERVO_RETRACT);
+//      }
+
+//      else if(msg.cmd == CMD_NEXT_POSITION)
+//      {
+//        // Retraction must complete before the carrier is allowed to move.
+//        if(request_servo_action(CMD_SERVO_RETRACT) == osOK)
+//        {
+//          STEPPER_SetDir(&stepper3, CARRIER_SEQUENCE_DIRECTION);
+//          STEPPER_Step(
+//            &stepper3,
+//            CARRIER_POSITION_STEPS,
+//            CARRIER_STEP_PULSE_US,
+//            CARRIER_STEP_DELAY_US
+//          );
+//        }
+//      }
+//      else if(msg.cmd == CMD_NEXT_CARRIER_POSITION)
+//            {
+//              // Retraction must complete before the carrier is allowed to move.
+//              if(request_servo_action(CMD_SERVO_RETRACT) == osOK)
+//              {
+//                STEPPER_SetDir(&stepper3, CARRIER_SEQUENCE_DIRECTION);
+//                STEPPER_Step(
+//                  &stepper3,
+//                  CARRIER2CARRIER_POSITION_STEPS,
+//                  CARRIER_STEP_PULSE_US,
+//                  CARRIER_STEP_DELAY_US
+//                );
+//              }
+//            }
+
+//      else if(msg.cmd == CMD_TIP_CLEAN)
+//      {
+//        if(request_servo_action(CMD_TIP_CLEAN) == osOK)
+//        {
+//          // Enforce the full 70-degree safety retraction after all three strokes.
+//          (void)request_servo_action(CMD_SERVO_RETRACT);
+//        }
+//      }
+
+//      else if(msg.cmd == CMD_SERVO_RETRACT)
+//      {
+//        (void)request_servo_action(CMD_SERVO_RETRACT);
+//      }
 
     }
   }
