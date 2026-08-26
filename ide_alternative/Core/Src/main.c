@@ -54,6 +54,7 @@
 #define CARRIER_STEP_DELAY_US        2000U
 #define SOLDER2MOVE_DELAY_MS		1500U
 #define MOVE2SOLDER_DELAY_MS		1000U
+#define IRON_HEAT_DELAY_MS    10000 //10 seconds for iron to heat up
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -977,8 +978,14 @@ void StartStepperMotorTask(void *argument)
     	if (msg.cmd == CMD_QUARTER_MOVE)
     	{
     		//Solder, Retract, Move all 2 times
+	    	// Needs around 10s to properly heat up
+	        HAL_GPIO_WritePin(HEATER1_GPIO_PORT, HEATER1_PIN, GPIO_PIN_SET);
+	        HAL_GPIO_WritePin(HEATER2_GPIO_PORT, HEATER2_PIN, GPIO_PIN_SET);
+	        osDelay(IRON_HEAT_DELAY_MS);
+
     	    for (int i = 0; i < 2; i++)
     	    {
+
     	    	//once iron is hitting pcb, solder
     	        if(request_servo_action(CMD_SERVO_SOLDER) == osOK)
     	        {
@@ -998,6 +1005,10 @@ void StartStepperMotorTask(void *argument)
     	            );
     	        }
     	    }
+
+	        HAL_GPIO_WritePin(HEATER1_GPIO_PORT, HEATER1_PIN, GPIO_PIN_RESET);
+	        HAL_GPIO_WritePin(HEATER2_GPIO_PORT, HEATER2_PIN, GPIO_PIN_RESET);
+
 
     	    // Clean, retract, move
     	    //once cleaning is done
