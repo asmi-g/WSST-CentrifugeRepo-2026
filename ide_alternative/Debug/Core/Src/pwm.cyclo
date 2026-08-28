@@ -1,4 +1,0 @@
-../Core/Src/pwm.c:3:17:clamp_u32	3
-../Core/Src/pwm.c:10:19:pwm_init	3
-../Core/Src/pwm.c:21:19:pwm_start	3
-../Core/Src/pwm.c:27:19:pwm_set	6

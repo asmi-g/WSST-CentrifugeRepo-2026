@@ -1,6 +1,0 @@
-../Core/Src/servo.c:26:6:SERVO_Init	10
-../Core/Src/servo.c:120:6:SERVO_MoveTo	1
-../Core/Src/servo.c:131:6:SERVO_RawMove	3
-../Core/Src/servo.c:140:10:SERVO_Get_MaxPulse	1
-../Core/Src/servo.c:147:10:SERVO_Get_MinPulse	1
-../Core/Src/servo.c:154:6:SERVO_Sweep	7
