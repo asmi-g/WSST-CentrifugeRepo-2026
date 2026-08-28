@@ -18,7 +18,6 @@ class UARTGui(QWidget):
         "1G": 97,
         "3G": 167,
         "5G": 216,
-        "7.5G": 265,
     }
 
     def __init__(self, com_port, baudrate=115200):
@@ -106,8 +105,8 @@ class UARTGui(QWidget):
         quick_commands = [
             # "SYSTEM ON",   # Re-enable only if the automatic sequence returns.
             # "SYSTEM OFF",  # Re-enable only if the automatic sequence returns.
-            "HEATER ON",
-            "HEATER OFF",
+            # "HEATER ON",
+            # "HEATER OFF",
             "QUARTER MOVE",
             # "SOLDER",
             # "NEXT POSITION",
@@ -239,16 +238,6 @@ class UARTGui(QWidget):
 
     def send_string(self, cmd):
         self.write_command(cmd)
-
-    # def route_line(self, line):
-    #     if line.startswith("TC1:"):
-    #         self.tc_log.append(line)
-    #     elif line.startswith("ENC:"):
-    #         self.enc_log.append(line[len("ENC:"):].strip())
-    #     elif line.startswith("TEMP:"):
-    #         self.temp_log.append(line[len("TEMP:"):].strip())
-    #     else:
-    #         self.tc_log.append(f"[unrouted] {line}")
 
     def route_line(self, line):
         elapsed = (datetime.now() - self.start_time).total_seconds()

@@ -1027,60 +1027,6 @@ void StartStepperMotorTask(void *argument)
     	        }
     	    }
     	}
-//      if(msg.cmd == CMD_SOLDER)
-//      {
-//        if(request_servo_action(CMD_SERVO_SOLDER) == osOK)
-//        {
-//          WIRE_FEEDER_Run(&stepper1, &stepper2);
-//          osDelay(TIP_SOLDER_DWELL_MS);
-//        }
-//
-//        // Always finish a solder request at the safe, fully retracted angle.
-//        (void)request_servo_action(CMD_SERVO_RETRACT);
-//      }
-
-//      else if(msg.cmd == CMD_NEXT_POSITION)
-//      {
-//        // Retraction must complete before the carrier is allowed to move.
-//        if(request_servo_action(CMD_SERVO_RETRACT) == osOK)
-//        {
-//          STEPPER_SetDir(&stepper3, CARRIER_SEQUENCE_DIRECTION);
-//          STEPPER_Step(
-//            &stepper3,
-//            CARRIER_POSITION_STEPS,
-//            CARRIER_STEP_PULSE_US,
-//            CARRIER_STEP_DELAY_US
-//          );
-//        }
-//      }
-//      else if(msg.cmd == CMD_NEXT_CARRIER_POSITION)
-//            {
-//              // Retraction must complete before the carrier is allowed to move.
-//              if(request_servo_action(CMD_SERVO_RETRACT) == osOK)
-//              {
-//                STEPPER_SetDir(&stepper3, CARRIER_SEQUENCE_DIRECTION);
-//                STEPPER_Step(
-//                  &stepper3,
-//                  CARRIER2CARRIER_POSITION_STEPS,
-//                  CARRIER_STEP_PULSE_US,
-//                  CARRIER_STEP_DELAY_US
-//                );
-//              }
-//            }
-
-//      else if(msg.cmd == CMD_TIP_CLEAN)
-//      {
-//        if(request_servo_action(CMD_TIP_CLEAN) == osOK)
-//        {
-//          // Enforce the full 70-degree safety retraction after all three strokes.
-//          (void)request_servo_action(CMD_SERVO_RETRACT);
-//        }
-//      }
-
-//      else if(msg.cmd == CMD_SERVO_RETRACT)
-//      {
-//        (void)request_servo_action(CMD_SERVO_RETRACT);
-//      }
 
     }
   }
