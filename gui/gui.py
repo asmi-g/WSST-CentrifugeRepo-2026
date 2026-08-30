@@ -296,7 +296,7 @@ class UARTGui(QWidget):
 
 if __name__ == "__main__":
     # Optional override: python gui.py COM7
-    com_port_str = sys.argv[1] if len(sys.argv) > 1 else "COM7"
+    com_port_str = sys.argv[1] if len(sys.argv) > 1 else "COM9"
     baudrate = 115200
 
     app = QApplication(sys.argv)
