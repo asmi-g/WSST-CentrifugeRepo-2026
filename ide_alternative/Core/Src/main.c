@@ -983,6 +983,9 @@ void StartStepperMotorTask(void *argument)
 	        HAL_GPIO_WritePin(HEATER2_GPIO_PORT, HEATER2_PIN, GPIO_PIN_SET);
 	        osDelay(IRON_HEAT_DELAY_MS);
 
+	        // Set PCB Carrier direction
+            STEPPER_SetDir(&stepper3, CARRIER_SEQUENCE_DIRECTION);
+
     	    for (int i = 0; i < 2; i++)
     	    {
 
@@ -996,7 +999,6 @@ void StartStepperMotorTask(void *argument)
     	        //once iron is fully retracted, move
     	        if(request_servo_action(CMD_SERVO_RETRACT) == osOK)
     	        {
-    	            STEPPER_SetDir(&stepper3, CARRIER_SEQUENCE_DIRECTION);
     	            STEPPER_Step(
     	                &stepper3,
     	                CARRIER_POSITION_STEPS,
@@ -1017,7 +1019,6 @@ void StartStepperMotorTask(void *argument)
     	    	//once iron is fully retracted, move
     	        if(request_servo_action(CMD_SERVO_RETRACT) == osOK)
     	        {
-    	            STEPPER_SetDir(&stepper3, CARRIER_SEQUENCE_DIRECTION);
     	            STEPPER_Step(
     	                &stepper3,
 						CARRIER2CARRIER_POSITION_STEPS,
