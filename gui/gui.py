@@ -34,16 +34,20 @@ class UARTGui(QWidget):
         # GUI widgets
         self.tc_log = QTextEdit(self)
         self.tc_log.setReadOnly(True)
+        self.tc_log.setMaximumHeight(150)
 
         self.temp_log = QTextEdit(self)
         self.temp_log.setReadOnly(True)
+        self.temp_log.setMaximumHeight(150)
 
         self.enc_log = QTextEdit(self)
         self.enc_log.setReadOnly(True)
+        self.enc_log.setMaximumHeight(150)
 
         self.tx_log = QTextEdit(self)
         self.tx_log.setReadOnly(True)
-        self.tx_log.setMaximumHeight(100)
+        self.tx_log.setMaximumHeight(500)
+        self.tx_log.setStyleSheet("font-size: 16px;") 
 
         self.input_line = QLineEdit(self)
         self.send_btn = QPushButton("Send", self)
@@ -100,6 +104,12 @@ class UARTGui(QWidget):
         layout.addWidget(QLabel("Commands Sent (TX):"))
         layout.addWidget(self.tx_log)
 
+        self.label_set1 = QLabel("<h2><strong>Parabola Set 1:</strong> 0G, 0G, 1G, 3G</h2>")        
+        self.label_set2 = QLabel("<h2><strong>Parabola Set 2:</strong> 0G, 1G, 1G, 3G</h2>")        
+        layout.addWidget(self.label_set1)
+        layout.addWidget(self.label_set2)
+
+
         layout.addWidget(QLabel("Commands:"))
         quick_btn_layout = QHBoxLayout()
         quick_commands = [
@@ -115,23 +125,40 @@ class UARTGui(QWidget):
         ]
         for label in quick_commands:
             btn = QPushButton(label, self)
+            btn.setStyleSheet("""
+                font-size: 14px; 
+                font-weight: bold; 
+                background-color: #6B3691; 
+                color: white; 
+                padding: 8px;
+            """)
             btn.clicked.connect(lambda checked, cmd=label: self.send_string(cmd))
             quick_btn_layout.addWidget(btn)
         layout.addLayout(quick_btn_layout)
+
 
         layout.addWidget(QLabel("BLDC Motor Commands:"))
         g_btn_layout = QHBoxLayout()
         for label, rpm in self.G_TO_RPM.items():
             btn = QPushButton(label, self)
+            btn.setStyleSheet("""
+                font-size: 14px; 
+                font-weight: bold; 
+                background-color: #6B3691; 
+                color: white; 
+                padding: 8px;
+            """)
             btn.clicked.connect(lambda checked, l=label, r=rpm: self.send_pwm_command(l, r))
             g_btn_layout.addWidget(btn)
         layout.addLayout(g_btn_layout)
 
+        # Custom command input, can comment out later
         layout.addWidget(QLabel("Custom Command Input:"))
         layout.addWidget(self.input_line)
         layout.addWidget(self.send_btn)
 
         layout.addWidget(self.status_label)
+        layout.addStretch(1) 
 
         self.setLayout(layout)
 
