@@ -17,7 +17,7 @@ class UARTGui(QWidget):
         "0G": 0,
         "1G": 97,
         "3G": 167,
-        "5G": 216,
+        #"5G": 216,
     }
 
     def __init__(self, com_port, baudrate=115200):
@@ -46,8 +46,8 @@ class UARTGui(QWidget):
 
         self.tx_log = QTextEdit(self)
         self.tx_log.setReadOnly(True)
-        self.tx_log.setMaximumHeight(500)
-        self.tx_log.setStyleSheet("font-size: 16px;") 
+        self.tx_log.setMinimumHeight(400)
+        self.tx_log.setStyleSheet("font-size: 20px;") 
 
         self.input_line = QLineEdit(self)
         self.send_btn = QPushButton("Send", self)
@@ -115,7 +115,7 @@ class UARTGui(QWidget):
         quick_commands = [
             # "SYSTEM ON",   # Re-enable only if the automatic sequence returns.
             # "SYSTEM OFF",  # Re-enable only if the automatic sequence returns.
-            # "HEATER ON",
+            "HEATER ON",
             # "HEATER OFF",
             "QUARTER MOVE",
             # "SOLDER",
