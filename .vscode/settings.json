@@ -1,4 +1,21 @@
 {
-    "cmake.sourceDirectory": "C:/Users/asmig/GitProjects/WSST-CentrifugeRepo-2026/app",
-    "cmake.useCMakePresets": "always"
+    "cmake.configureOnOpen": false,
+    "cmake.autoSelectKit": false,
+    "cmake.sourceDirectory": "${workspaceFolder}/app",
+    "cmake.buildDirectory": "${workspaceFolder}/app/build",
+    "VsCodeTaskButtons.tasks": [
+    {
+      "label": "Build",
+      "task": "Build"
+    },
+    {
+      "label": "Flash",
+      "task": "Flash"
+    },
+    {
+      "label": "Clean",
+      "task": "Clean Build Directory"
+    }
+  ],
+
 }

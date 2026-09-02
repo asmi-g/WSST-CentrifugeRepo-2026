@@ -58,3 +58,34 @@ STM32 PWM pin -> motor driver input
 STM32 GND -> shared ground  
 
 An LED may also be used temporarily for PWM validation before connecting a motor driver.
+
+## Pinouts
+Motor Driver:
+VCC to power supply (lab supply acceptable, 12V, 1A)
+GND to power supply (lab supply acceptable, 12V, 1A)
+PUL+ to STM32 PB8
+PUL- to STM32 GND
+DIR+ to STM32 PC11
+DIR- to STM32 GND
+ENA+ left floating
+ENA- left floating
+A+ to Motor
+A- to Motor
+B+ to Motor
+B- to Motor
+
+Motor: Directly to motor driver
+A+ to Motor Driver
+A- to Motor Driver
+B+ to Motor Driver
+B- to Motor Driver
+
+Motor Encoder:
+VCC to STM32 3.3V
+GND to STM32 GND
+EA+ to STM32 PC6 
+EA- to STM32 GND
+EB+ to STM32 PC7
+EB- to STM32 GND
+EZ+ to STM32 PC10
+EZ- to STM32 GND

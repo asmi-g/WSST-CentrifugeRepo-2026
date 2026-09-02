@@ -6,9 +6,16 @@
       "type": "cortex-debug",
       "request": "launch",
       "servertype": "openocd",
+      "serverpath":"C:/Users/asmig/OpenOCD-20251211-0.12.0/bin/openocd.exe",
 
       "cwd": "${workspaceFolder}/app",
       "executable": "${workspaceFolder}/app/build/stm32-multi-board.elf",
+
+      // "serverpath": "${env:USERPROFILE}/OpenOCD-20251211-0.12.0/bin/openocd.exe",
+      //"armToolchainPath": "${env:ProgramFiles(x86)}/Arm GNU Toolchain arm-none-eabi/14.3 rel1/bin",
+
+      //"serverpath": "${env:OPENOCD_PATH}",
+      "armToolchainPath": "${env:ARM_TOOLCHAIN}",
 
       "device": "STM32F401RE",
       "interface": "swd",
@@ -19,10 +26,18 @@
       ],
 
       "runToEntryPoint": "main",
-      "svdFile": "${workspaceFolder}/app/boards/F401RE/STM32F401RE.svd",
+      "svdFile": "${workspaceFolder}/app/boards/F401RE/STM32F401.svd",
+      "postRestartCommands": [
+        "continue"
+      ],
+      "openOCDLaunchCommands": [
+        "transport select swd",  
+        "adapter speed 1000",
+        "reset_config srst_only srst_nogate connect_assert_srst"
+      ],
 
+      "envFile": "${workspaceFolder}/app/init/.env",
       "preLaunchTask": "Build"
     }
   ]
 }
-
