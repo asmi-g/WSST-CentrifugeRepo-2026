@@ -1,7 +1,7 @@
 # Heating System Architecture
 
 <div align="center">
-    <img src="assets/heating-subsystem-block-diagram-v1.png" alt="Heating Subsystem Block Diagram"/>
+    <img src="../assets/heating-subsystem-block-diagram-v1.png" alt="Heating Subsystem Block Diagram"/>
 </div>
 <br>
 

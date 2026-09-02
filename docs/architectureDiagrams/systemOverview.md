@@ -1,7 +1,7 @@
 # System Architecture
 
 <div align="center">
-    <img src="assets/WSST-SW-High-Level-Diagram.png" alt="High Level Software Interfacing"/>
+    <img src="../assets/WSST-SW-High-Level-Diagram.png" alt="High Level Software Interfacing"/>
 </div>
 
 The software subsystem can be divided into 3 components:
@@ -14,7 +14,7 @@ Tool stack includes C/C++, cmake, OpenOCD, gnu embedded toolchain, and python fo
 ## System Integration Diagram
 
 <div align="center">
-    <img src="assets/WSST-SW-Integration-Diagram.png" alt="Integration/GUI Software Interfacing"/>
+    <img src="../docs/assets/WSST-SW-Integration-Diagram.png" alt="Integration/GUI Software Interfacing"/>
 </div>
 
 The high level functionality subsystem can be further divided into 2 components:

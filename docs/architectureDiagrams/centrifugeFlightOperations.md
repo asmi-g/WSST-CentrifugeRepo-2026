@@ -2,7 +2,7 @@
 
 ## Per-Parabola Flight Operations
 <div align="center">
-    <img src="assets/Parabolic-Operations.drawio.png" alt="Parabola-Specific Flight Operations"/>
+    <img src="../assets/Parabolic-Operations.drawio.png" alt="Parabola-Specific Flight Operations"/>
 </div>
 <br>
 
@@ -15,7 +15,7 @@ Comments:
 ---
 ## Mission Overview Flight Operations
 <div align="center">
-    <img src="assets/FlightOverview.drawio.png" alt="High Level Mission Overview Across All Parabolas, Both Flights"/>
+    <img src="../assets/FlightOverview.drawio.png" alt="High Level Mission Overview Across All Parabolas, Both Flights"/>
 </div>
 <br>
 
