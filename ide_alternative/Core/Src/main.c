@@ -855,7 +855,6 @@ void StartUartRxCmdTask(void *argument)
       cmd_msg.cmd = CMD_NONE;
       cmd_msg.value = 0;
 
-      /* SYSTEM ON/OFF are intentionally inactive. Operator commands are independent. */
 
       /* HEATER COMMANDS */
 
@@ -881,47 +880,6 @@ void StartUartRxCmdTask(void *argument)
 			printf("Physical action queue full; QUARTER MOVE not accepted.\n");
 		  }
 		}
-//      else if(strcmp(rx_msg.command, "SOLDER") == 0)
-//      {
-//        if(queue_physical_action(CMD_SOLDER) != osOK)
-//        {
-//          printf("Physical action queue full; SOLDER not accepted.\n");
-//        }
-//      }
-
-//      else if(strcmp(rx_msg.command, "NEXT POSITION") == 0)
-//      {
-//        if(queue_physical_action(CMD_NEXT_POSITION) != osOK)
-//        {
-//          printf("Physical action queue full; NEXT POSITION not accepted.\n");
-//        }
-//      }
-//      else if(strcmp(rx_msg.command, "NEXT CARRIER POSITION") == 0)
-//      {
-//        if(queue_physical_action(CMD_NEXT_CARRIER_POSITION) != osOK)
-//        {
-//          printf("Physical action queue full; NEXT CARRIER POSITION not accepted.\n");
-//        }
-//      }
-
-//      else if(strcmp(rx_msg.command, "CLEAN") == 0)
-//      {
-//        if(queue_physical_action(CMD_TIP_CLEAN) != osOK)
-//        {
-//          printf("Physical action queue full; CLEAN not accepted.\n");
-//        }
-//      }
-
-      /* Hidden safety command; its GUI button remains commented out. */
-//      else if(strcmp(rx_msg.command, "RETRACT TIPS") == 0)
-//      {
-//        if(queue_physical_action(CMD_SERVO_RETRACT) != osOK)
-//        {
-//          printf("Physical action queue full; RETRACT TIPS not accepted.\n");
-//        }
-//      }
-
-      /* MOTOR SPEED */
 
       else
       {
