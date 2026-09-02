@@ -27,6 +27,14 @@
 #include <stdlib.h>
 #include "uart.h"
 #include "pwm.h"
+#include "thermocouple.h"
+#include "servo.h"
+#include "stepper.h"
+#include "encoder.h"
+#include "mcp9808.h"
+#include "hall_sensor.h"
+#include "tip_cleaner.h"
+#include "wire_feeder.h"
 
 /* USER CODE END Includes */
 
@@ -37,7 +45,16 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-
+#define linearActuator  0
+#define SERVO_ACTION_COMPLETE_FLAG  (1U << 0)
+#define CARRIER_SEQUENCE_DIRECTION  0U
+#define CARRIER_POSITION_STEPS       445U //445 is for PCB to PCB
+#define CARRIER2CARRIER_POSITION_STEPS 440U //435 is for Carrier to Carrier (one half to another half)
+#define CARRIER_STEP_PULSE_US          5U
+#define CARRIER_STEP_DELAY_US        2000U
+#define SOLDER2MOVE_DELAY_MS		1500U
+#define MOVE2SOLDER_DELAY_MS		1000U
+#define IRON_HEAT_DELAY_MS    10000 //10 seconds for iron to heat up
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -46,9 +63,15 @@
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
+I2C_HandleTypeDef hi2c3;
+
+SPI_HandleTypeDef hspi1;
+
 TIM_HandleTypeDef htim2;
 TIM_HandleTypeDef htim3;
 TIM_HandleTypeDef htim4;
+TIM_HandleTypeDef htim10;
+TIM_HandleTypeDef htim11;
 
 UART_HandleTypeDef huart2;
 
@@ -59,10 +82,10 @@ const osThreadAttr_t HandleUartRxCmdTask_attributes = {
   .stack_size = 512 * 4,
   .priority = (osPriority_t) osPriorityNormal,
 };
-/* Definitions for StaticMotorControlTask */
-osThreadId_t StaticMotorControlTaskHandle;
-const osThreadAttr_t StaticMotorControlTask_attributes = {
-  .name = "StaticMotorControlTask",
+/* Definitions for StepperMotorControlTask */
+osThreadId_t StepperMotorControlTaskHandle;
+const osThreadAttr_t StepperMotorControlTask_attributes = {
+  .name = "StepperMotorControlTask",
   .stack_size = 512 * 4,
   .priority = (osPriority_t) osPriorityLow,
 };
@@ -87,15 +110,29 @@ const osThreadAttr_t DataAcquisitionTask_attributes = {
   .stack_size = 512 * 4,
   .priority = (osPriority_t) osPriorityLow,
 };
+/* Definitions for ServoMotorControlTask */
+osThreadId_t ServoMotorControlTaskHandle;
+const osThreadAttr_t ServoMotorControlTask_attributes = {
+  .name = "ServoMotorControlTask",
+  .stack_size = 512 * 4,
+  .priority = (osPriority_t) osPriorityLow,
+};
+/* Definitions for EncoderTask */
+osThreadId_t EncoderTaskHandle;
+const osThreadAttr_t EncoderTask_attributes = {
+  .name = "EncoderTask",
+  .stack_size = 512 * 4,
+  .priority = (osPriority_t) osPriorityLow,
+};
 /* Definitions for uartRxMessageQueue */
 osMessageQueueId_t uartRxMessageQueueHandle;
 const osMessageQueueAttr_t uartRxMessageQueue_attributes = {
   .name = "uartRxMessageQueue"
 };
-/* Definitions for staticMotorQueue */
-osMessageQueueId_t staticMotorQueueHandle;
-const osMessageQueueAttr_t staticMotorQueue_attributes = {
-  .name = "staticMotorQueue"
+/* Definitions for stepperMotorQueue */
+osMessageQueueId_t stepperMotorQueueHandle;
+const osMessageQueueAttr_t stepperMotorQueue_attributes = {
+  .name = "stepperMotorQueue"
 };
 /* Definitions for dynamicMotorQueue */
 osMessageQueueId_t dynamicMotorQueueHandle;
@@ -112,10 +149,25 @@ osMessageQueueId_t dataReadQueueHandle;
 const osMessageQueueAttr_t dataReadQueue_attributes = {
   .name = "dataReadQueue"
 };
+/* Definitions for servoMotorQueue */
+osMessageQueueId_t servoMotorQueueHandle;
+const osMessageQueueAttr_t servoMotorQueue_attributes = {
+  .name = "servoMotorQueue"
+};
+/* Definitions for encoderQueue */
+osMessageQueueId_t encoderQueueHandle;
+const osMessageQueueAttr_t encoderQueue_attributes = {
+  .name = "encoderQueue"
+};
 /* Definitions for uartMutex */
 osMutexId_t uartMutexHandle;
 const osMutexAttr_t uartMutex_attributes = {
   .name = "uartMutex"
+};
+/* Definitions for spiMutex */
+osMutexId_t spiMutexHandle;
+const osMutexAttr_t spiMutex_attributes = {
+  .name = "spiMutex"
 };
 /* USER CODE BEGIN PV */
 
@@ -128,11 +180,17 @@ static void MX_USART2_UART_Init(void);
 static void MX_TIM2_Init(void);
 static void MX_TIM3_Init(void);
 static void MX_TIM4_Init(void);
+static void MX_SPI1_Init(void);
+static void MX_TIM10_Init(void);
+static void MX_I2C3_Init(void);
+static void MX_TIM11_Init(void);
 void StartUartRxCmdTask(void *argument);
-void StartStaticMotorTask(void *argument);
+void StartStepperMotorTask(void *argument);
 void StartDynamicMotorTask(void *argument);
 void StartHeaterTask(void *argument);
 void StartDataAcquisitionTask(void *argument);
+void StartServoMotorTask(void *argument);
+void StartEncoderTask(void *argument);
 
 /* USER CODE BEGIN PFP */
 
@@ -176,8 +234,11 @@ int main(void)
   MX_TIM2_Init();
   MX_TIM3_Init();
   MX_TIM4_Init();
+  MX_SPI1_Init();
+  MX_TIM10_Init();
+  MX_I2C3_Init();
+  MX_TIM11_Init();
   /* USER CODE BEGIN 2 */
-  uart_init(&huart2);
   /* USER CODE END 2 */
 
   /* Init scheduler */
@@ -185,6 +246,9 @@ int main(void)
   /* Create the mutex(es) */
   /* creation of uartMutex */
   uartMutexHandle = osMutexNew(&uartMutex_attributes);
+
+  /* creation of spiMutex */
+  spiMutexHandle = osMutexNew(&spiMutex_attributes);
 
   /* USER CODE BEGIN RTOS_MUTEX */
   /* add mutexes, ... */
@@ -202,8 +266,8 @@ int main(void)
   /* creation of uartRxMessageQueue */
   uartRxMessageQueueHandle = osMessageQueueNew (16, sizeof(uart_message_t), &uartRxMessageQueue_attributes);
 
-  /* creation of staticMotorQueue */
-  staticMotorQueueHandle = osMessageQueueNew (16, sizeof(cmd_msg_t), &staticMotorQueue_attributes);
+  /* creation of stepperMotorQueue */
+  stepperMotorQueueHandle = osMessageQueueNew (16, sizeof(cmd_msg_t), &stepperMotorQueue_attributes);
 
   /* creation of dynamicMotorQueue */
   dynamicMotorQueueHandle = osMessageQueueNew (16, sizeof(cmd_msg_t), &dynamicMotorQueue_attributes);
@@ -214,6 +278,12 @@ int main(void)
   /* creation of dataReadQueue */
   dataReadQueueHandle = osMessageQueueNew (16, sizeof(cmd_msg_t), &dataReadQueue_attributes);
 
+  /* creation of servoMotorQueue */
+  servoMotorQueueHandle = osMessageQueueNew (16, sizeof(cmd_msg_t), &servoMotorQueue_attributes);
+
+  /* creation of encoderQueue */
+  encoderQueueHandle = osMessageQueueNew (16, sizeof(cmd_msg_t), &encoderQueue_attributes);
+
   /* USER CODE BEGIN RTOS_QUEUES */
   /* add queues, ... */
   /* USER CODE END RTOS_QUEUES */
@@ -222,8 +292,8 @@ int main(void)
   /* creation of HandleUartRxCmdTask */
   HandleUartRxCmdTaskHandle = osThreadNew(StartUartRxCmdTask, NULL, &HandleUartRxCmdTask_attributes);
 
-  /* creation of StaticMotorControlTask */
-  StaticMotorControlTaskHandle = osThreadNew(StartStaticMotorTask, NULL, &StaticMotorControlTask_attributes);
+  /* creation of StepperMotorControlTask */
+  StepperMotorControlTaskHandle = osThreadNew(StartStepperMotorTask, NULL, &StepperMotorControlTask_attributes);
 
   /* creation of DynamicMotorControlTask */
   DynamicMotorControlTaskHandle = osThreadNew(StartDynamicMotorTask, NULL, &DynamicMotorControlTask_attributes);
@@ -233,6 +303,12 @@ int main(void)
 
   /* creation of DataAcquisitionTask */
   DataAcquisitionTaskHandle = osThreadNew(StartDataAcquisitionTask, NULL, &DataAcquisitionTask_attributes);
+
+  /* creation of ServoMotorControlTask */
+  ServoMotorControlTaskHandle = osThreadNew(StartServoMotorTask, NULL, &ServoMotorControlTask_attributes);
+
+  /* creation of EncoderTask */
+  EncoderTaskHandle = osThreadNew(StartEncoderTask, NULL, &EncoderTask_attributes);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
@@ -297,6 +373,78 @@ void SystemClock_Config(void)
   {
     Error_Handler();
   }
+}
+
+/**
+  * @brief I2C3 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_I2C3_Init(void)
+{
+
+  /* USER CODE BEGIN I2C3_Init 0 */
+
+  /* USER CODE END I2C3_Init 0 */
+
+  /* USER CODE BEGIN I2C3_Init 1 */
+
+  /* USER CODE END I2C3_Init 1 */
+  hi2c3.Instance = I2C3;
+  hi2c3.Init.ClockSpeed = 100000;
+  hi2c3.Init.DutyCycle = I2C_DUTYCYCLE_2;
+  hi2c3.Init.OwnAddress1 = 0;
+  hi2c3.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
+  hi2c3.Init.DualAddressMode = I2C_DUALADDRESS_DISABLE;
+  hi2c3.Init.OwnAddress2 = 0;
+  hi2c3.Init.GeneralCallMode = I2C_GENERALCALL_DISABLE;
+  hi2c3.Init.NoStretchMode = I2C_NOSTRETCH_DISABLE;
+  if (HAL_I2C_Init(&hi2c3) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN I2C3_Init 2 */
+
+  /* USER CODE END I2C3_Init 2 */
+
+}
+
+/**
+  * @brief SPI1 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_SPI1_Init(void)
+{
+
+  /* USER CODE BEGIN SPI1_Init 0 */
+
+  /* USER CODE END SPI1_Init 0 */
+
+  /* USER CODE BEGIN SPI1_Init 1 */
+
+  /* USER CODE END SPI1_Init 1 */
+  /* SPI1 parameter configuration*/
+  hspi1.Instance = SPI1;
+  hspi1.Init.Mode = SPI_MODE_MASTER;
+  hspi1.Init.Direction = SPI_DIRECTION_2LINES;
+  hspi1.Init.DataSize = SPI_DATASIZE_8BIT;
+  hspi1.Init.CLKPolarity = SPI_POLARITY_HIGH;
+  hspi1.Init.CLKPhase = SPI_PHASE_2EDGE;
+  hspi1.Init.NSS = SPI_NSS_SOFT;
+  hspi1.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_2;
+  hspi1.Init.FirstBit = SPI_FIRSTBIT_MSB;
+  hspi1.Init.TIMode = SPI_TIMODE_DISABLE;
+  hspi1.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
+  hspi1.Init.CRCPolynomial = 10;
+  if (HAL_SPI_Init(&hspi1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN SPI1_Init 2 */
+
+  /* USER CODE END SPI1_Init 2 */
+
 }
 
 /**
@@ -370,9 +518,8 @@ static void MX_TIM3_Init(void)
 
   /* USER CODE END TIM3_Init 0 */
 
-  TIM_ClockConfigTypeDef sClockSourceConfig = {0};
+  TIM_Encoder_InitTypeDef sConfig = {0};
   TIM_MasterConfigTypeDef sMasterConfig = {0};
-  TIM_OC_InitTypeDef sConfigOC = {0};
 
   /* USER CODE BEGIN TIM3_Init 1 */
 
@@ -382,17 +529,17 @@ static void MX_TIM3_Init(void)
   htim3.Init.CounterMode = TIM_COUNTERMODE_UP;
   htim3.Init.Period = 65535;
   htim3.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
-  htim3.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
-  if (HAL_TIM_Base_Init(&htim3) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
-  if (HAL_TIM_ConfigClockSource(&htim3, &sClockSourceConfig) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  if (HAL_TIM_PWM_Init(&htim3) != HAL_OK)
+  htim3.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_ENABLE;
+  sConfig.EncoderMode = TIM_ENCODERMODE_TI1;
+  sConfig.IC1Polarity = TIM_ICPOLARITY_RISING;
+  sConfig.IC1Selection = TIM_ICSELECTION_DIRECTTI;
+  sConfig.IC1Prescaler = TIM_ICPSC_DIV1;
+  sConfig.IC1Filter = 0;
+  sConfig.IC2Polarity = TIM_ICPOLARITY_RISING;
+  sConfig.IC2Selection = TIM_ICSELECTION_DIRECTTI;
+  sConfig.IC2Prescaler = TIM_ICPSC_DIV1;
+  sConfig.IC2Filter = 10;
+  if (HAL_TIM_Encoder_Init(&htim3, &sConfig) != HAL_OK)
   {
     Error_Handler();
   }
@@ -402,22 +549,9 @@ static void MX_TIM3_Init(void)
   {
     Error_Handler();
   }
-  sConfigOC.OCMode = TIM_OCMODE_PWM1;
-  sConfigOC.Pulse = 0;
-  sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
-  sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
-  if (HAL_TIM_PWM_ConfigChannel(&htim3, &sConfigOC, TIM_CHANNEL_1) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  if (HAL_TIM_PWM_ConfigChannel(&htim3, &sConfigOC, TIM_CHANNEL_2) != HAL_OK)
-  {
-    Error_Handler();
-  }
   /* USER CODE BEGIN TIM3_Init 2 */
 
   /* USER CODE END TIM3_Init 2 */
-  HAL_TIM_MspPostInit(&htim3);
 
 }
 
@@ -481,6 +615,82 @@ static void MX_TIM4_Init(void)
 }
 
 /**
+  * @brief TIM10 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_TIM10_Init(void)
+{
+
+  /* USER CODE BEGIN TIM10_Init 0 */
+
+  /* USER CODE END TIM10_Init 0 */
+
+  /* USER CODE BEGIN TIM10_Init 1 */
+
+  /* USER CODE END TIM10_Init 1 */
+  htim10.Instance = TIM10;
+  htim10.Init.Prescaler = 0;
+  htim10.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim10.Init.Period = 65535;
+  htim10.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  htim10.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+  if (HAL_TIM_Base_Init(&htim10) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN TIM10_Init 2 */
+
+  /* USER CODE END TIM10_Init 2 */
+
+}
+
+/**
+  * @brief TIM11 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_TIM11_Init(void)
+{
+
+  /* USER CODE BEGIN TIM11_Init 0 */
+
+  /* USER CODE END TIM11_Init 0 */
+
+  TIM_IC_InitTypeDef sConfigIC = {0};
+
+  /* USER CODE BEGIN TIM11_Init 1 */
+
+  /* USER CODE END TIM11_Init 1 */
+  htim11.Instance = TIM11;
+  htim11.Init.Prescaler = 159;
+  htim11.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim11.Init.Period = 65535;
+  htim11.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  htim11.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+  if (HAL_TIM_Base_Init(&htim11) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  if (HAL_TIM_IC_Init(&htim11) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sConfigIC.ICPolarity = TIM_INPUTCHANNELPOLARITY_RISING;
+  sConfigIC.ICSelection = TIM_ICSELECTION_DIRECTTI;
+  sConfigIC.ICPrescaler = TIM_ICPSC_DIV1;
+  sConfigIC.ICFilter = 0x03;
+  if (HAL_TIM_IC_ConfigChannel(&htim11, &sConfigIC, TIM_CHANNEL_1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN TIM11_Init 2 */
+
+  /* USER CODE END TIM11_Init 2 */
+
+}
+
+/**
   * @brief USART2 Initialization Function
   * @param None
   * @retval None
@@ -528,16 +738,46 @@ static void MX_GPIO_Init(void)
   /* GPIO Ports Clock Enable */
   __HAL_RCC_GPIOA_CLK_ENABLE();
   __HAL_RCC_GPIOB_CLK_ENABLE();
+  __HAL_RCC_GPIOC_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_9, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOA, STEPPER1_GPIO_Pin|STEPPER2_GPIO_Pin|HEATER2_GPIO_Pin|HEATER1_GPIO_Pin, GPIO_PIN_RESET);
 
-  /*Configure GPIO pin : PA9 */
-  GPIO_InitStruct.Pin = GPIO_PIN_9;
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(GPIOB, TC1_CS_Pin|TC2_CS_Pin, GPIO_PIN_SET);
+
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(PCB_CARRIER_DIR_GPIO_Port, PCB_CARRIER_DIR_Pin, GPIO_PIN_RESET);
+
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(PCB_CARRIER_GPIO_GPIO_Port, PCB_CARRIER_GPIO_Pin, GPIO_PIN_RESET);
+
+  /*Configure GPIO pins : STEPPER1_GPIO_Pin STEPPER2_GPIO_Pin HEATER2_GPIO_Pin HEATER1_GPIO_Pin */
+  GPIO_InitStruct.Pin = STEPPER1_GPIO_Pin|STEPPER2_GPIO_Pin|HEATER2_GPIO_Pin|HEATER1_GPIO_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
+  /*Configure GPIO pins : TC1_CS_Pin TC2_CS_Pin PCB_CARRIER_GPIO_Pin */
+  GPIO_InitStruct.Pin = TC1_CS_Pin|TC2_CS_Pin|PCB_CARRIER_GPIO_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : PCB_CARRIER_Z__Pin */
+  GPIO_InitStruct.Pin = PCB_CARRIER_Z__Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(PCB_CARRIER_Z__GPIO_Port, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : PCB_CARRIER_DIR_Pin */
+  GPIO_InitStruct.Pin = PCB_CARRIER_DIR_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(PCB_CARRIER_DIR_GPIO_Port, &GPIO_InitStruct);
 
   /* USER CODE BEGIN MX_GPIO_Init_2 */
 
@@ -546,7 +786,48 @@ static void MX_GPIO_Init(void)
 
 /* USER CODE BEGIN 4 */
 
+static osStatus_t queue_physical_action(cmd_t command)
+{
+  cmd_msg_t action_msg = {
+    .cmd = command,
+    .value = 0U
+  };
 
+  return osMessageQueuePut(
+    stepperMotorQueueHandle,
+    &action_msg,
+    0U,
+    0U
+  );
+}
+
+static osStatus_t request_servo_action(cmd_t command)
+{
+  cmd_msg_t servo_msg = {
+    .cmd = command,
+    .value = 0U
+  };
+
+  (void)osThreadFlagsClear(SERVO_ACTION_COMPLETE_FLAG);
+
+  if(osMessageQueuePut(servoMotorQueueHandle, &servo_msg, 0U, osWaitForever) != osOK)
+  {
+    return osError;
+  }
+
+  uint32_t flags = osThreadFlagsWait(
+    SERVO_ACTION_COMPLETE_FLAG,
+    osFlagsWaitAny,
+    osWaitForever
+  );
+
+  if((flags & osFlagsError) != 0U)
+  {
+    return osError;
+  }
+
+  return ((flags & SERVO_ACTION_COMPLETE_FLAG) != 0U) ? osOK : osError;
+}
 
 /* USER CODE END 4 */
 
@@ -563,6 +844,9 @@ void StartUartRxCmdTask(void *argument)
   uart_message_t rx_msg;
   cmd_msg_t cmd_msg;
 
+  // Start interrupt-driven reception only after the RTOS queue exists.
+  uart_init(&huart2);
+
   /* Infinite loop */
   for(;;)
   {
@@ -571,27 +855,11 @@ void StartUartRxCmdTask(void *argument)
       cmd_msg.cmd = CMD_NONE;
       cmd_msg.value = 0;
 
-      /* SYSTEM COMMANDS */
+      /* SYSTEM ON/OFF are intentionally inactive. Operator commands are independent. */
 
-      if(strcmp(rx_msg.command, "SYSTEM ON") == 0)
-      {
-        cmd_msg.cmd = CMD_SYSTEM_ON;
+      /* HEATER COMMANDS */
 
-        osMessageQueuePut(staticMotorQueueHandle, &cmd_msg, 0, 0);
-        osMessageQueuePut(dataReadQueueHandle, &cmd_msg, 0, 0);
-      }
-
-      else if(strcmp(rx_msg.command, "SYSTEM OFF") == 0)
-      {
-        cmd_msg.cmd = CMD_SYSTEM_OFF;
-
-        osMessageQueuePut(staticMotorQueueHandle, &cmd_msg, 0, 0);
-        osMessageQueuePut(dataReadQueueHandle, &cmd_msg, 0, 0);
-      }
-
-        /* HEATER COMMANDS */
-
-      else if(strcmp(rx_msg.command, "HEATER ON") == 0)
+      if(strcmp(rx_msg.command, "HEATER ON") == 0)
       {
         cmd_msg.cmd = CMD_HEATER_ON;
 
@@ -605,16 +873,25 @@ void StartUartRxCmdTask(void *argument)
         osMessageQueuePut(heaterQueueHandle, &cmd_msg, 0, 0);
       }
 
-      /* MOTOR SPEED */
+      /* PHYSICAL ACTIONS */
+      else if(strcmp(rx_msg.command, "QUARTER MOVE") == 0)
+      {
+        if(queue_physical_action(CMD_QUARTER_MOVE) != osOK)
+        {
+        printf("Physical action queue full; QUARTER MOVE not accepted.\n");
+        }
+      }
 
       else
       {
-        int duty = atoi(rx_msg.command);
+        char *end_ptr = NULL;
+        long duty = strtol(rx_msg.command, &end_ptr, 10);
 
-        if(duty >= 0 && duty <= 255)
+        if((end_ptr != rx_msg.command) && (*end_ptr == '\0')
+            && (duty >= 0) && (duty <= 255))
         {
           cmd_msg.cmd = CMD_SET_PWM;
-          cmd_msg.value = duty;
+          cmd_msg.value = (uint16_t)duty;
 
           osMessageQueuePut(dynamicMotorQueueHandle, &cmd_msg, 0, 0);
         }
@@ -624,63 +901,96 @@ void StartUartRxCmdTask(void *argument)
         }
       }
     }
-    osDelay(1000);
+    osDelay(50);
 
   }
   /* USER CODE END 5 */
 }
 
-/* USER CODE BEGIN Header_StartStaticMotorTask */
+/* USER CODE BEGIN Header_StartStepperMotorTask */
 /**
-* @brief Function implementing the StaticMotorControlTask thread.
+* @brief Function implementing the StepperMotorControlTask thread.
 * @param argument: Not used
 * @retval None
 */
-/* USER CODE END Header_StartStaticMotorTask */
-void StartStaticMotorTask(void *argument)
+/* USER CODE END Header_StartStepperMotorTask */
+void StartStepperMotorTask(void *argument)
 {
-  /* USER CODE BEGIN StartStaticMotorTask */
-  // Integrates PWM with UART input
+  /* USER CODE BEGIN StartStepperMotorTask */
   cmd_msg_t msg;
-  pwm_t stepperMotor1;
-  pwm_t stepperMotor2;
-  pwm_t linearActuator;
 
-  int fixedStepperMotor1Duty = 255;
-  int fixedStepperMotor2Duty = 255;
-  int fixedLinearActuatorDuty = 255;
+  stepper_t stepper1;
+  stepper_t stepper2;
+  stepper_t stepper3;
 
-  pwm_init(&stepperMotor1, &htim3, TIM_CHANNEL_1);
-  pwm_start(&stepperMotor1);  
-
-  pwm_init(&stepperMotor2, &htim3, TIM_CHANNEL_2);
-  pwm_start(&stepperMotor2);
-
-  pwm_init(&linearActuator, &htim4, TIM_CHANNEL_1);
-  pwm_start(&linearActuator);
+  // PA6 and PA7 drive the two wire feeders; PB8 drives the PCB carrier.
+  STEPPER_Init(&stepper1, GPIOA, GPIO_PIN_6, NULL, 0);
+  STEPPER_Init(&stepper2, GPIOA, GPIO_PIN_7, NULL, 0);
+  STEPPER_Init(&stepper3, GPIOB, GPIO_PIN_8, GPIOC, GPIO_PIN_11);
 
   /* Infinite loop */
   for(;;)
   {
-    if(osMessageQueueGet(staticMotorQueueHandle, &msg, NULL, osWaitForever) == osOK)
+    if(osMessageQueueGet(stepperMotorQueueHandle, &msg, NULL, osWaitForever) == osOK)
     {
-      if(msg.cmd == CMD_SYSTEM_ON)
-      {
-        pwm_set(&stepperMotor1, fixedStepperMotor1Duty);
-        pwm_set(&stepperMotor2, fixedStepperMotor2Duty);
-        pwm_set(&linearActuator, fixedLinearActuatorDuty);
-      }
-      else if(msg.cmd == CMD_SYSTEM_OFF)
-      {
-        pwm_set(&stepperMotor1, 0);
-        pwm_set(&stepperMotor2, 0);
-        pwm_set(&linearActuator, 0);
-      }
+    	//Command for doing (Solder, Retract, Move) x2, then Clean, Retract, Move
+    	if (msg.cmd == CMD_QUARTER_MOVE)
+    	{
+    		//Solder, Retract, Move all 2 times
+	    	// Needs around 10s to properly heat up
+	        HAL_GPIO_WritePin(HEATER1_GPIO_PORT, HEATER1_PIN, GPIO_PIN_SET);
+	        HAL_GPIO_WritePin(HEATER2_GPIO_PORT, HEATER2_PIN, GPIO_PIN_SET);
+	        osDelay(IRON_HEAT_DELAY_MS);
+
+          // Set PCB Carrier direction
+          STEPPER_SetDir(&stepper3, CARRIER_SEQUENCE_DIRECTION);
+
+
+    	    for (int i = 0; i < 2; i++)
+    	    {
+
+    	    	//once iron is hitting pcb, solder
+    	        if(request_servo_action(CMD_SERVO_SOLDER) == osOK)
+    	        {
+    	            WIRE_FEEDER_Run(&stepper1, &stepper2);
+    	            osDelay(TIP_SOLDER_DWELL_MS);
+    	        }
+
+    	        //once iron is fully retracted, move
+    	        if(request_servo_action(CMD_SERVO_RETRACT) == osOK)
+    	        {
+    	            STEPPER_Step(
+    	                &stepper3,
+    	                CARRIER_POSITION_STEPS,
+    	                CARRIER_STEP_PULSE_US,
+    	                CARRIER_STEP_DELAY_US
+    	            );
+    	        }
+    	    }
+
+	        HAL_GPIO_WritePin(HEATER1_GPIO_PORT, HEATER1_PIN, GPIO_PIN_RESET);
+	        HAL_GPIO_WritePin(HEATER2_GPIO_PORT, HEATER2_PIN, GPIO_PIN_RESET);
+
+
+    	    // Clean, retract, move
+    	    //once cleaning is done
+    	    if(request_servo_action(CMD_TIP_CLEAN) == osOK)
+    	    {
+    	    	//once iron is fully retracted, move
+    	        if(request_servo_action(CMD_SERVO_RETRACT) == osOK)
+    	        {
+    	            STEPPER_Step(
+    	                &stepper3,
+						CARRIER2CARRIER_POSITION_STEPS,
+    	                CARRIER_STEP_PULSE_US,
+    	                CARRIER_STEP_DELAY_US
+    	            );
+    	        }
+    	    }
+    	}
     }
-    
-    osDelay(100);
   }
-  /* USER CODE END StartStaticMotorTask */
+  /* USER CODE END StartStepperMotorTask */
 }
 
 /* USER CODE BEGIN Header_StartDynamicMotorTask */
@@ -697,7 +1007,7 @@ void StartDynamicMotorTask(void *argument)
   cmd_msg_t msg;
   pwm_t dcMotor;
 
-  pwm_init(&dcMotor, &htim2, TIM_CHANNEL_1);
+  pwm_init(&dcMotor, DYNAMIC_MOTOR_PWM_TIMER, DYNAMIC_MOTOR_PWM_CHANNEL);
   pwm_start(&dcMotor);
 
   /* Infinite loop */
@@ -732,11 +1042,15 @@ void StartHeaterTask(void *argument)
   {
     if(osMessageQueueGet(heaterQueueHandle, &msg, NULL, osWaitForever) == osOK)
     {
-      if(msg.cmd == CMD_HEATER_ON)
-        HAL_GPIO_WritePin(GPIOA, GPIO_PIN_9, GPIO_PIN_SET);
+      if(msg.cmd == CMD_HEATER_ON){
+        HAL_GPIO_WritePin(HEATER1_GPIO_PORT, HEATER1_PIN, GPIO_PIN_SET);
+        HAL_GPIO_WritePin(HEATER2_GPIO_PORT, HEATER2_PIN, GPIO_PIN_SET);
+      }
 
-      else if(msg.cmd == CMD_HEATER_OFF)
-        HAL_GPIO_WritePin(GPIOA, GPIO_PIN_9, GPIO_PIN_RESET);
+      else if(msg.cmd == CMD_HEATER_OFF){
+        HAL_GPIO_WritePin(HEATER1_GPIO_PORT, HEATER1_PIN, GPIO_PIN_RESET);
+        HAL_GPIO_WritePin(HEATER2_GPIO_PORT, HEATER2_PIN, GPIO_PIN_RESET);
+      }
     }
     osDelay(100);
   }
@@ -753,12 +1067,164 @@ void StartHeaterTask(void *argument)
 void StartDataAcquisitionTask(void *argument)
 {
   /* USER CODE BEGIN StartDataAcquisitionTask */
+  char msg[128];
+
+  max31856_t therm1 = {&hspi1, {TC1_CS_GPIO_Port, TC1_CS_Pin}};
+  max31856_init(&therm1);
+  max31856_set_noise_filter(&therm1, CR0_FILTER_OUT_50Hz);
+  max31856_set_cold_junction_enable(&therm1, CR0_CJ_ENABLED);
+  max31856_set_thermocouple_type(&therm1, CR1_TC_TYPE_K);
+  max31856_set_average_samples(&therm1, CR1_AVG_TC_SAMPLES_2);
+  max31856_set_open_circuit_fault_detection(&therm1, CR0_OC_DETECT_ENABLED_TC_LESS_2ms);
+  max31856_set_conversion_mode(&therm1, CR0_CONV_CONTINUOUS);
+
+  max31856_t therm2 = {&hspi1, {TC2_CS_GPIO_Port, TC2_CS_Pin}};
+  max31856_init(&therm2);
+  max31856_set_noise_filter(&therm2, CR0_FILTER_OUT_50Hz);
+  max31856_set_cold_junction_enable(&therm2, CR0_CJ_ENABLED);
+  max31856_set_thermocouple_type(&therm2, CR1_TC_TYPE_K);
+  max31856_set_average_samples(&therm2, CR1_AVG_TC_SAMPLES_2);
+  max31856_set_open_circuit_fault_detection(&therm2, CR0_OC_DETECT_ENABLED_TC_LESS_2ms);
+  max31856_set_conversion_mode(&therm2, CR0_CONV_CONTINUOUS);
+
+  // MCP9808 setup
+  MCP9808_DEVICE mcp = mcp9808_load_device(0x18);
+  mcp.Configuration = 0x0000; // default: continuous conversion, no shutdown
+  mcp.Resolution = 0x03;      // 0.0625C resolution
+  mcp9808_apply_configuration(&mcp);
+
+  HallSensor_Init(&htim11);
+
+  osDelay(250);
+
   /* Infinite loop */
   for(;;)
   {
-    osDelay(1);
+
+    //Read thermocouple temperature and send over UART
+    max31856_read_fault(&therm1);
+    max31856_read_fault(&therm2);
+    if (therm1.sr.val) {
+      /* Handle thermocouple error */
+    }
+    if (therm2.sr.val) {
+      /* Handle thermocouple error */
+    }
+
+    // Thermocouples
+    osMutexAcquire(spiMutexHandle, osWaitForever);
+    float temp1 = max31856_read_TC_temp(&therm1);
+    float temp2 = max31856_read_TC_temp(&therm2);
+    osMutexRelease(spiMutexHandle);
+    snprintf(msg, sizeof(msg), "TC1: %.2f C, TC2: %.2f C\r\n", temp1, temp2);
+    uart_tx(msg);
+
+    // External temp sensor, MCP9808
+    float boardTemp = mcp9808_get_temp_float(mcp9808_read_temperature(&mcp));
+    snprintf(msg, sizeof(msg), "TEMP:%.2f\r\n", boardTemp);
+    uart_tx(msg);
+
+    // BLDC Hall Sensor / speed output
+    uint32_t counts = HallSensor_GetCounts();
+    float rpm = HallSensor_GetRPM();
+    float deg = HallSensor_CountsToDegrees(counts);
+    snprintf(msg, sizeof(msg), "ENC: %ld counts | %.1f deg | %.1f RPM\r\n", counts, deg, rpm);
+    uart_tx(msg);
+
+
+
+    osDelay(500);
   }
   /* USER CODE END StartDataAcquisitionTask */
+}
+
+/* USER CODE BEGIN Header_StartServoMotorTask */
+/**
+* @brief Function implementing the ServoMotorControlTask thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_StartServoMotorTask */
+void StartServoMotorTask(void *argument)
+{
+  /* USER CODE BEGIN StartServoMotorTask */
+  cmd_msg_t msg;
+
+  SERVO_Init(linearActuator);
+  SERVO_MoveTo(linearActuator, TIP_RETRACTED_ANGLE);
+
+  /* Infinite loop */
+  for(;;)
+  {
+    if(osMessageQueueGet(servoMotorQueueHandle, &msg, NULL, osWaitForever) == osOK)
+    {
+      uint8_t action_complete = 1U;
+
+      if(msg.cmd == CMD_SERVO_SOLDER)
+      {
+        SERVO_MoveTo(linearActuator, TIP_SOLDER_ANGLE);
+        osDelay(TIP_SERVO_MOVE_MS);
+      }
+
+      else if(msg.cmd == CMD_TIP_CLEAN)
+      {
+        TIP_CLEANER_Run(linearActuator);
+      }
+
+      else if(msg.cmd == CMD_SERVO_RETRACT)
+      {
+        SERVO_MoveTo(linearActuator, TIP_RETRACTED_ANGLE);
+        osDelay(TIP_SERVO_MOVE_MS);
+      }
+
+      else
+      {
+        action_complete = 0U;
+      }
+
+      if(action_complete != 0U)
+      {
+        (void)osThreadFlagsSet(
+          StepperMotorControlTaskHandle,
+          SERVO_ACTION_COMPLETE_FLAG
+        );
+      }
+    }
+  }
+  /* USER CODE END StartServoMotorTask */
+}
+
+/* USER CODE BEGIN Header_StartEncoderTask */
+/**
+* @brief Function implementing the EncoderTask thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_StartEncoderTask */
+void StartEncoderTask(void *argument)
+{
+  /* USER CODE BEGIN StartEncoderTask */
+  encoder_t enc1;
+  ENCODER_Init(&enc1, &htim3, 2000);  // 4000 CPR from datasheet
+  ENCODER_Zero(&enc1);                // start from 0
+
+  char msg[64];
+
+  /* Infinite loop */
+  for(;;)
+  {
+    int32_t counts  = ENCODER_GetCount(&enc1);
+    float   degrees = ENCODER_GetDegrees(&enc1);
+    float   rpm     = ENCODER_GetRPM(&enc1, 50); // matches osDelay below
+
+    // snprintf(msg, sizeof(msg), "ENC: %ld counts | %.1f deg | %.1f RPM\r\n", counts, degrees, rpm);
+    // uart_tx(msg);
+
+    ENCODER_WaitForIndex(&enc1, GPIOC, GPIO_PIN_8);
+
+    osDelay(50);
+  }
+  /* USER CODE END StartEncoderTask */
 }
 
 /**
